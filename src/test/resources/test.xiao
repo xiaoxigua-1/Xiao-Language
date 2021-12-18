@@ -1,0 +1,5 @@
+fn main( ) {
+    val a = 10
+    print(10, a)
+    print("hi young dian shen", "hi zan zan dian shen", 20, 30)
+}
