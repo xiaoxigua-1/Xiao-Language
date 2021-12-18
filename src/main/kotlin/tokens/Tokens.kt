@@ -12,5 +12,10 @@ enum class Tokens(val token: String) {
     LEFT_PARENTHESES_TOKEN("("),
     RIGHT_PARENTHESES_TOKEN(")"),
     SLASH_TOKEN("/"),
-    BACKSLASH_TOKEN("\\")
+    BACKSLASH_TOKEN("\\"),
+    PLUS_TOKEN("+"),
+    MINUS_TOKEN("-"),
+    MULTIPLY_TOKEN("*"),
+    EQUAL_TOKEN("="),
+    IDENTIFIER_TOKEN("")
 }

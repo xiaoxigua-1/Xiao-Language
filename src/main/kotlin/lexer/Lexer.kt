@@ -67,8 +67,18 @@ class Lexer(private val stringStream: StringStream) {
                     Position(lineNumber, index),
                     TokenType.RIGHT_SQUARE_BRACKETS_TOKEN
                 )
+                Tokens.MULTIPLY_TOKEN.token -> tokens += Token(
+                    stringStream.currently,
+                    Position(lineNumber, index),
+                    TokenType.MULTIPLY_TOKEN
+                )
+                Tokens.PLUS_TOKEN.token -> tokens += Token(
+                    stringStream.currently,
+                    Position(lineNumber, index),
+                    TokenType.PLUS_TOKEN
+                )
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> tokens += string()
-//                in ("0".."9"), ".", "-" -> tokens += number()
+                in ("0".."9"), ".", "-" -> tokens += number()
 
                 else -> {
                     if (str.isEmpty()) start = index
@@ -120,7 +130,42 @@ class Lexer(private val stringStream: StringStream) {
 
         throw SyntaxError("EOL while scanning string literal")
     }
-//
-//    fun number(): Token {
-//    }
+
+    private fun number(): Token {
+        var str = ""
+        val start = index
+        var isFloat = false
+
+        while (!stringStream.isEOF) {
+            when (stringStream.currently) {
+                Tokens.MINUS_TOKEN.token -> {
+                    stringStream.nextChar()
+                    if (stringStream.currently in ("0".."9")) {
+                        str = "-"
+                    } else {
+                        stringStream.backChar()
+                    }
+                }
+                in ("0".."9"), "." -> {
+                    if (stringStream.currently == ".") isFloat = true
+                    str += stringStream.currently
+                }
+                in Tokens.values().map { it.token }, "\n", "\r" -> {
+                    stringStream.backChar()
+                    index--
+                    return Token(
+                        str,
+                        Position(lineNumber, start, index),
+                        if (isFloat) TokenType.FLOAT_LITERAL_TOKEN else TokenType.INTEGER_LITERAL_TOKEN
+                    )
+                }
+                else -> break
+            }
+
+            index++
+            stringStream.nextChar()
+        }
+
+        throw SyntaxError("invalid syntax")
+    }
 }

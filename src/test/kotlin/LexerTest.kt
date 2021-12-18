@@ -9,6 +9,10 @@ class LexerTest {
     fun lexTest() {
         val file = File(this::class.java.getResource("/test.xiao").path)
         val stringStream = StringStream(file)
-        Lexer(stringStream).lex()
+        val lex = Lexer(stringStream).lex()
+        lex.forEach {
+            println(it.literal)
+            println(it.tokenType)
+        }
     }
 }
