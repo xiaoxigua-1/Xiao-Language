@@ -6,14 +6,15 @@ import xiaoLanguage.tokens.Token
 import xiaoLanguage.util.Report
 
 class Parser(private val lex: Lexer, private val path: String) {
-    private val reporter = mutableListOf<Report>()
+    private val parserReporter = mutableListOf<Report>()
     private var tokens: MutableList<Token> = mutableListOf()
+    private var lexerReport = mutableListOf<Report>()
 
     init {
         try {
             tokens = lex.lex()
         } catch (e: Exception) {
-            reporter.add(Report(e, Position(lex.lineNumber, lex.exceptionIndex)))
+            lexerReport.add(Report(e, Position(lex.lineNumber, lex.exceptionIndex)))
         }
     }
 
