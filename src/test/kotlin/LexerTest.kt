@@ -13,6 +13,7 @@ class LexerTest {
         lex.forEach {
             println(it.literal)
             println(it.tokenType)
+            println(file.readLines()[it.position.lineNumber].slice(it.position.start .. it.position.end))
         }
     }
 }

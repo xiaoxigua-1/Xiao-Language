@@ -21,9 +21,7 @@ class Lexer(private val stringStream: StringStream) {
                 in Tokens.values().map { it.token }, " ", "\n", "\r" -> {
                     if (str.isNotEmpty()) {
                         tokens += Token(
-                            str,
-                            Position(lineNumber, start, start + str.length - 1),
-                            TokenType.IDENTIFIER_TOKEN
+                            str, Position(lineNumber, start, start + str.length - 1), TokenType.IDENTIFIER_TOKEN
                         )
 
                         str = ""
@@ -38,47 +36,47 @@ class Lexer(private val stringStream: StringStream) {
                 }
                 " ", "\t", "\b" -> {}
                 Tokens.LEFT_CURLY_BRACKETS_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.LEFT_CURLY_BRACKETS_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.LEFT_CURLY_BRACKETS_TOKEN
                 )
                 Tokens.LEFT_PARENTHESES_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.LEFT_PARENTHESES_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.LEFT_PARENTHESES_TOKEN
                 )
                 Tokens.LEFT_SQUARE_BRACKETS_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.LEFT_SQUARE_BRACKETS_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.LEFT_SQUARE_BRACKETS_TOKEN
                 )
                 Tokens.RIGHT_CURLY_BRACKETS_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.RIGHT_CURLY_BRACKETS_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.RIGHT_CURLY_BRACKETS_TOKEN
                 )
                 Tokens.RIGHT_PARENTHESES_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.RIGHT_PARENTHESES_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.RIGHT_PARENTHESES_TOKEN
                 )
                 Tokens.RIGHT_SQUARE_BRACKETS_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.RIGHT_SQUARE_BRACKETS_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.RIGHT_SQUARE_BRACKETS_TOKEN
                 )
                 Tokens.MULTIPLY_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.MULTIPLY_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.MULTIPLY_TOKEN
                 )
                 Tokens.PLUS_TOKEN.token -> tokens += Token(
-                    stringStream.currently,
-                    Position(lineNumber, index),
-                    TokenType.PLUS_TOKEN
+                    stringStream.currently, Position(lineNumber, index), TokenType.PLUS_TOKEN
+                )
+                Tokens.MINUS_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.MINUS_TOKEN
+                )
+                Tokens.COLON_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.COLON_TOKEN
+                )
+                Tokens.COMMA_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.COMMA_TOKEN
+                )
+                Tokens.EQUAL_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.EQUAL_TOKEN
                 )
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> tokens += string()
-                in ("0".."9"), ".", "-" -> tokens += number()
+                Tokens.SLASH_TOKEN.token -> {
+                    val token = slash()
+                    if (token != null) tokens += token
+                }
+                in ("0".."9"), Tokens.DOT_TOKEN.token -> tokens += number()
 
                 else -> {
                     if (str.isEmpty()) start = index
@@ -113,9 +111,7 @@ class Lexer(private val stringStream: StringStream) {
                 }
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> {
                     return Token(
-                        str,
-                        Position(lineNumber, start, ++index),
-                        TokenType.STRING_LITERAL_TOKEN
+                        str, Position(lineNumber, start, ++index), TokenType.STRING_LITERAL_TOKEN
                     )
                 }
                 "\n", "\r" -> {
@@ -136,18 +132,30 @@ class Lexer(private val stringStream: StringStream) {
         val start = index
         var isFloat = false
 
+        // float .3
+        when (stringStream.currently) {
+            Tokens.DOT_TOKEN.token -> {
+                stringStream.nextChar()
+                if (stringStream.currently in ("0".."9")) {
+                    str = "."
+                    isFloat = true
+                    index++
+                } else {
+                    stringStream.backChar()
+                    return Token(
+                        stringStream.currently,
+                        Position(lineNumber, start, start),
+                        TokenType.DOT_TOKEN
+                    )
+                }
+            }
+        }
+
+        // float and int 10.3 or 20
         while (!stringStream.isEOF) {
             when (stringStream.currently) {
-                Tokens.MINUS_TOKEN.token -> {
-                    stringStream.nextChar()
-                    if (stringStream.currently in ("0".."9")) {
-                        str = "-"
-                    } else {
-                        stringStream.backChar()
-                    }
-                }
-                in ("0".."9"), "." -> {
-                    if (stringStream.currently == ".") isFloat = true
+                in ("0".."9"), Tokens.DOT_TOKEN.token -> {
+                    if (stringStream.currently == Tokens.DOT_TOKEN.token) isFloat = true
                     str += stringStream.currently
                 }
                 in Tokens.values().map { it.token }, "\n", "\r" -> {
@@ -167,5 +175,59 @@ class Lexer(private val stringStream: StringStream) {
         }
 
         throw SyntaxError("invalid syntax")
+    }
+
+    private fun slash(): Token? {
+        var str = "/"
+
+        stringStream.nextChar()
+
+        when (stringStream.currently) {
+            Tokens.SLASH_TOKEN.token -> {
+                while (!stringStream.isEOF) {
+                    when (stringStream.currently) {
+                        Tokens.SLASH_TOKEN.token -> str += stringStream.currently
+                        "\r", "\n" -> {
+                            index = 0
+                            lineNumber++
+                            stringStream.nextChar()
+                            return null
+                        }
+                    }
+
+                    index++
+                    stringStream.nextChar()
+                }
+            }
+            Tokens.MULTIPLY_TOKEN.token -> {
+                while (!stringStream.isEOF) {
+                    when (stringStream.currently) {
+                        Tokens.MULTIPLY_TOKEN.token -> {
+                            stringStream.nextChar()
+                            if (stringStream.currently == Tokens.SLASH_TOKEN.token) {
+                                return null
+                            } else stringStream.backChar()
+                        }
+                        "\r", "\n" -> {
+                            index = 0
+                            lineNumber++
+                        }
+                    }
+
+                    index++
+                    stringStream.nextChar()
+                }
+            }
+            else ->{
+                stringStream.backChar()
+                return Token(
+                    str,
+                    Position(lineNumber, index),
+                    TokenType.SLASH_TOKEN
+                )
+            }
+        }
+
+        throw SyntaxError("EOL while scanning string literal")
     }
 }

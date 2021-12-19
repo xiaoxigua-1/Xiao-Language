@@ -1,5 +1,10 @@
+im xiao.math
+
 fn main( ) {
-    val a = 10
-    print(10, a)
-    print("hi young dian shen", "hi zan zan dian shen", 20, 30, 0.3, .3)
+    val b = 10-20+.3
+    // asdwadsasd
+    val c = 20
+    /*
+        Ha Young dian shen
+    */ fn a
 }

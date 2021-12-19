@@ -17,5 +17,5 @@ enum class Tokens(val token: String) {
     MINUS_TOKEN("-"),
     MULTIPLY_TOKEN("*"),
     EQUAL_TOKEN("="),
-    IDENTIFIER_TOKEN("")
+    DOT_TOKEN(".")
 }
