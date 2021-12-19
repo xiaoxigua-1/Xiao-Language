@@ -29,8 +29,8 @@ class CommandLineInterface(private val args: Array<String>) {
     private fun commandBuild() {
         if (args.size > 1) {
             val filePath = args[1]
-            Compiler(File(filePath))
-        } else CommandError("missing file path")
+            Compiler(File(filePath)).compile()
+        } else throw CommandError("missing file path")
     }
 
     private fun commandRun() {

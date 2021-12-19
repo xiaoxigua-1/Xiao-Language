@@ -8,5 +8,8 @@ enum class Keyword(val keyword: String) {
     IF_KEYWORD("if"),
     ELSE_KEYWORD("else"),
     WHILE_KEYWORD("while"),
-    FOR_KEYWORD("for")
+    FOR_KEYWORD("for"),
+    PUBLIC_KEYWORD("public"),
+    PROTECTED_KEYWORD("protected"),
+    PRIVATE_KEYWORD("private")
 }

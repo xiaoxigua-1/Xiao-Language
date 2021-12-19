@@ -8,13 +8,13 @@ fn main( ) {
         Ha Young dian shen
     */
     Test().test() // print "Yong Dian Shen"
-    math.plus(10, 20)
+    Math.plus(10, 20)
 }
 
 data class Xigua(val count: Int)
 
 class Test {
     fn test(text: String) {
-        print("Yong Dian Shen, text)
+        print("Yong Dian Shen", text)
     }
 }

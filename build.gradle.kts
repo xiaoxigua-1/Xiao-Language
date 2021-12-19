@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("org.ow2.asm:asm:9.2")
 }
 
 tasks.test {
