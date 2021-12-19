@@ -8,8 +8,9 @@ import xiaoLanguage.tokens.Tokens
 import xiaoLanguage.util.StringStream
 
 class Lexer(private val stringStream: StringStream) {
-    private var lineNumber = 0
     private var index = 0
+    var lineNumber = 0
+    var exceptionIndex = 0
 
     fun lex(): MutableList<Token> {
         val tokens = mutableListOf<Token>()
@@ -94,6 +95,7 @@ class Lexer(private val stringStream: StringStream) {
     private fun string(): Token {
         var str = ""
         val start = index
+        exceptionIndex = index
 
         stringStream.nextChar()
 
@@ -130,6 +132,7 @@ class Lexer(private val stringStream: StringStream) {
     private fun number(): Token {
         var str = ""
         val start = index
+        exceptionIndex = index
         var isFloat = false
 
         // float .3

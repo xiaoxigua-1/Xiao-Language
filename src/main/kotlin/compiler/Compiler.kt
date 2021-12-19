@@ -8,8 +8,8 @@ import java.io.File
 class Compiler(private val file: File) {
     fun compile() {
         val stringStream = StringStream(file)
-        val tokens = Lexer(stringStream).lex()
-        val parser = Parser(tokens)
+        val lex = Lexer(stringStream)
+        val parser = Parser(lex, file.absolutePath)
 
     }
 }

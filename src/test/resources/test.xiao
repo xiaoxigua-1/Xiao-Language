@@ -1,10 +1,20 @@
-im xiao.math
+im xiao.Math
 
 fn main( ) {
-    val b = 10-20+.3
+    var b = 10-20+.3
     // asdwadsasd
-    val c = 20
+    var c = 20
     /*
         Ha Young dian shen
-    */ fn a
+    */
+    Test().test() // print "Yong Dian Shen"
+    math.plus(10, 20)
+}
+
+data class Xigua(val count: Int)
+
+class Test {
+    fn test(text: String) {
+        print("Yong Dian Shen", text)
+    }
 }
