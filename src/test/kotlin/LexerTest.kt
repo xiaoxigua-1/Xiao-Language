@@ -12,7 +12,7 @@ class LexerTest {
         val lex = Lexer(stringStream).lex()
         lex.forEach {
             println(it.literal)
-            println(it.tokenType)
+            println(it.position.lineNumber)
             println(file.readLines()[it.position.lineNumber].slice(it.position.start .. it.position.end))
         }
     }

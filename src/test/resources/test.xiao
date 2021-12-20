@@ -1,6 +1,6 @@
 im xiao.Math
 
-fn main( ) {
+fn main( ): Void {
 }
 class Test {
 }
