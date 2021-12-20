@@ -1,9 +1,7 @@
 package xiaoLanguage.parser
 
+import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
-import xiaoLanguage.ast.Parameter
-import xiaoLanguage.ast.Statement
-import xiaoLanguage.ast.Type
 import xiaoLanguage.exception.SyntaxError
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.tokens.Keyword
@@ -63,6 +61,8 @@ class Parser(private val lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             val node = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
+                Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
+                Keyword.IMPORT_KEYWORD.keyword -> importExpression()
                 else -> null
             }
 
@@ -71,6 +71,15 @@ class Parser(private val lex: Lexer, private val file: File) {
         }
 
         println(ast)
+    }
+
+    private fun importExpression(): Import {
+        val name = tokens[index]
+        val path = mutableListOf<Token>()
+
+//        while ()
+
+        return Import(name, path)
     }
 
     private fun classExpression(): xiaoLanguage.ast.Class {
