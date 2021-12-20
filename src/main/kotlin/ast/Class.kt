@@ -3,7 +3,7 @@ package xiaoLanguage.ast
 import xiaoLanguage.tokens.Token
 
 data class Class(
-    val accessorToken: Token?,
+    val accessorToken: Token? = null,
     val classKeyword: Token,
     val className: Token,
     val functions: MutableList<Function>,
