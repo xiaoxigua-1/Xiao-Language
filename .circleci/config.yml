@@ -21,6 +21,7 @@ jobs:
           name: "Run tests"
           command: 
             chmod +x ./gradlew |
+            echo "Young dian shen" |
             ./gradlew test
 
 # Invoke jobs via workflows
