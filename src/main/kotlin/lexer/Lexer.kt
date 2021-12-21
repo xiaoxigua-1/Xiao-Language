@@ -231,6 +231,6 @@ class Lexer(private val stringStream: StringStream) {
             }
         }
 
-        throw SyntaxError("EOL while scanning string literal")
+        throw SyntaxError("invalid syntax")
     }
 }

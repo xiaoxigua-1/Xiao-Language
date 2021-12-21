@@ -12,11 +12,11 @@ import xiaoLanguage.util.Report.*
 import xiaoLanguage.util.Report
 import java.io.File
 
-class Parser(private val lex: Lexer, private val file: File) {
+class Parser(lex: Lexer, private val file: File) {
     private val parserReporter = mutableListOf<Report>()
     private var tokens: MutableList<Token> = mutableListOf()
     private val lexerReport = mutableListOf<Report>()
-    private var ast = mutableListOf<Any>()
+    private var ast = mutableListOf<ASTNode>()
     private var index = 0
 
     init {
@@ -35,7 +35,6 @@ class Parser(private val lex: Lexer, private val file: File) {
                 parserReporter.forEach {
                     it.printReport(file.readLines(), file.absolutePath)
                 }
-                println(e)
             }
         } else {
             lexerReport.forEach {
@@ -53,15 +52,14 @@ class Parser(private val lex: Lexer, private val file: File) {
             throw Exception()
         }
         else -> {
-            parserReporter.add(Report.Error(SyntaxError("Unexpected token ${tokens[index].tokenType}, expected token $token")))
-            println(tokens[index].literal)
+            parserReporter.add(Error(SyntaxError("Unexpected token ${tokens[index].tokenType}, expected token $token")))
             throw Exception()
         }
     }
 
     private fun expression() {
         while (!isEOFToken) {
-            val node = when (tokens[index].literal) {
+            val node: ASTNode? = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
                 Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
                 Keyword.IMPORT_KEYWORD.keyword -> importExpression()
@@ -76,7 +74,7 @@ class Parser(private val lex: Lexer, private val file: File) {
     }
 
     private fun importExpression(): Import {
-        val name = tokens[index++]
+        val name = comparison(TokenType.IDENTIFIER_TOKEN)
         val lineNumber = name.position.lineNumber
         val path = mutableListOf<Token>()
         var isDot = false
@@ -91,11 +89,13 @@ class Parser(private val lex: Lexer, private val file: File) {
             }
         }
 
+        if (!isDot) throw SyntaxError("invalid syntax")
+
         return Import(name, path)
     }
 
-    private fun classExpression(): xiaoLanguage.ast.Class {
-        val classKeyword = tokens[index++]
+    private fun classExpression(): Class {
+        val classKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val className = comparison(TokenType.IDENTIFIER_TOKEN)
         val functions = mutableListOf<Function>()
 
@@ -103,21 +103,33 @@ class Parser(private val lex: Lexer, private val file: File) {
         // TODO(parse functions)
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
-        return xiaoLanguage.ast.Class(classKeyword = classKeyword, className = className, functions = functions)
+        return Class(classKeyword = classKeyword, className = className, functions = functions)
     }
 
     private fun functionExpression(): Function {
-        val fnKeyword = tokens[index++]
+        val fnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val fnName = comparison(TokenType.IDENTIFIER_TOKEN)
         val parameters = mutableListOf<Parameter>()
         val statements = mutableListOf<Statement>()
+        var colon: Token? = null
+        var returnType: Token? = null
+        var isComma = false
 
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
-        // TODO(parse)
+
+        while (!isEOFToken && tokens[index].tokenType != TokenType.RIGHT_PARENTHESES_TOKEN) {
+            if (!isComma) {
+                isComma = true
+                parameters += parameterExpression()
+            } else isComma = false
+        }
+
         comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
 
-        val colon = comparison(TokenType.COLON_TOKEN)
-        val returnType = comparison(TokenType.IDENTIFIER_TOKEN)
+        if (tokens[index].tokenType == TokenType.COLON_TOKEN) {
+            colon = comparison(TokenType.COLON_TOKEN)
+            returnType = comparison(TokenType.IDENTIFIER_TOKEN)
+        }
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
         // TODO()
@@ -127,13 +139,13 @@ class Parser(private val lex: Lexer, private val file: File) {
             functionName = fnName,
             parameters = parameters,
             colon = colon,
-            returnType = Type(returnType),
+            returnType = returnType?.let { Type(it) },
             statements = statements
         )
     }
 
-    fun parameterExpression(): Parameter {
-        val name = tokens[index]
+    private fun parameterExpression(): Parameter {
+        val name = comparison(TokenType.IDENTIFIER_TOKEN)
         val colon = comparison(TokenType.COLON_TOKEN)
         val type = comparison(TokenType.IDENTIFIER_TOKEN)
 

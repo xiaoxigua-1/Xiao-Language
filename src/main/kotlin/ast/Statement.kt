@@ -3,7 +3,7 @@ package xiaoLanguage.ast
 import xiaoLanguage.tokens.Position
 import xiaoLanguage.tokens.Token
 
-sealed class Statement {
+sealed class Statement : ASTNode {
     abstract val position: Position
 
     data class VariableDeclaration(

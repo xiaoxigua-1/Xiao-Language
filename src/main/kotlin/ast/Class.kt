@@ -8,4 +8,4 @@ data class Class(
     val className: Token,
     val functions: MutableList<Function>,
     val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal)
-)
+) : ASTNode

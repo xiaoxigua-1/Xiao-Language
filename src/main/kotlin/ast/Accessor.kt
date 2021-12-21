@@ -3,7 +3,7 @@ package xiaoLanguage.ast
 import org.objectweb.asm.Opcodes
 import xiaoLanguage.tokens.Keyword
 
-enum class Accessor(val access: Int) {
+enum class Accessor(val access: Int) : ASTNode {
     Public(Opcodes.ACC_PUBLIC),
     Protected(Opcodes.ACC_PROTECTED),
     Private(Opcodes.ACC_PRIVATE);

@@ -1,5 +1,5 @@
 package xiaoLanguage.ast
 
-sealed class Expression {
+sealed class Expression : ASTNode {
 
 }
