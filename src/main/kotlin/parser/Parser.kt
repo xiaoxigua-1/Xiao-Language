@@ -52,7 +52,9 @@ class Parser(lex: Lexer, private val file: File) {
             throw Exception()
         }
         else -> {
-            parserReporter.add(Error(SyntaxError("Unexpected token ${tokens[index].tokenType}, expected token $token")))
+            parserReporter.add(Error(SyntaxError(
+                "Unexpected token ${tokens[index].tokenType}, expected token $token"
+            )))
             throw Exception()
         }
     }
@@ -89,7 +91,7 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
-        if (!isDot) throw SyntaxError("invalid syntax")
+        if (!isDot) throw SyntaxError()
 
         return Import(name, path)
     }
@@ -101,6 +103,13 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
         // TODO(parse functions)
+        while (!isEOFToken && tokens[index].tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
+            when (tokens[index].literal) {
+                Keyword.FUNCTION_KEYWORD.keyword -> functions += functionExpression()
+                else -> parserReporter.add(Error(SyntaxError()))
+            }
+        }
+
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
         return Class(classKeyword = classKeyword, className = className, functions = functions)
@@ -132,7 +141,7 @@ class Parser(lex: Lexer, private val file: File) {
         }
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
-        // TODO()
+        // TODO(parse block)
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
         return Function(
             functionKeyword = fnKeyword,

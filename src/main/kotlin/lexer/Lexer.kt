@@ -177,7 +177,7 @@ class Lexer(private val stringStream: StringStream) {
             stringStream.nextChar()
         }
 
-        throw SyntaxError("invalid syntax")
+        throw SyntaxError()
     }
 
     private fun slash(): Token? {
@@ -231,6 +231,6 @@ class Lexer(private val stringStream: StringStream) {
             }
         }
 
-        throw SyntaxError("invalid syntax")
+        throw SyntaxError()
     }
 }
