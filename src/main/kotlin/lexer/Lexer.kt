@@ -95,7 +95,7 @@ class Lexer(private val stringStream: StringStream) {
     private fun string(): Token {
         var str = ""
         val start = index
-        exceptionIndex = index
+        exceptionIndex = index++
 
         stringStream.nextChar()
 
@@ -113,7 +113,7 @@ class Lexer(private val stringStream: StringStream) {
                 }
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> {
                     return Token(
-                        str, Position(lineNumber, start, ++index), TokenType.STRING_LITERAL_TOKEN
+                        str, Position(lineNumber, start, index), TokenType.STRING_LITERAL_TOKEN
                     )
                 }
                 "\n", "\r" -> {

@@ -27,7 +27,7 @@ sealed class Report {
             val arrow = source[position!!.lineNumber].length - code.length
 
             """
-            |File "$path", ${position!!.lineNumber + 1}
+            |File "$path", ${position!!.lineNumber + 1} line
             |  > $code
             |  ${(0..position!!.start + 1 - arrow).joinToString("") { " " }}^
             |${Color.valueOf(level).asciiColor}$exceptionName: ${exception.message} ${Color.End.asciiColor}

@@ -2,5 +2,9 @@ im xiao.Math
 
 fn main(args: String) {
 }
+
 class Test {
+    fn tommyDianShen() {
+        // print("dian shen teach me")
+    }
 }
