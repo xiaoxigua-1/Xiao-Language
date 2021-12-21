@@ -19,7 +19,9 @@ jobs:
       - checkout
       - run: 
           name: "Run tests"
-          command: ./gradlew test
+          command: 
+            chmod +x ./gradlew |
+            ./gradlew test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
