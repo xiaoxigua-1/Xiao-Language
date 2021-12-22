@@ -18,5 +18,6 @@ enum class TokenType {
     MINUS_TOKEN,
     MULTIPLY_TOKEN,
     EQUAL_TOKEN,
-    DOT_TOKEN
+    DOT_TOKEN,
+    EOF
 }

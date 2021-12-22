@@ -30,7 +30,7 @@ class Parser(lex: Lexer, private val file: File) {
     fun parser() {
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
-                expression()
+                ast = expression(TokenType.EOF)
             } catch (e: Exception) {
                 parserReporter.forEach {
                     it.printReport(file.readLines(), file.absolutePath)
@@ -52,15 +52,20 @@ class Parser(lex: Lexer, private val file: File) {
             throw Exception()
         }
         else -> {
-            parserReporter.add(Error(SyntaxError(
-                "Unexpected token ${tokens[index].tokenType}, expected token $token"
-            )))
+            parserReporter.add(
+                Error(
+                    SyntaxError(
+                        "Unexpected token ${tokens[index].tokenType}, expected token $token"
+                    ), tokens[index].position
+                )
+            )
             throw Exception()
         }
     }
 
-    private fun expression() {
-        while (!isEOFToken) {
+    private fun expression(endTokenType: TokenType): MutableList<ASTNode> {
+        val nodes = mutableListOf<ASTNode>()
+        while (!isEOFToken && tokens[index].tokenType != endTokenType) {
             val node: ASTNode? = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
                 Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
@@ -68,11 +73,11 @@ class Parser(lex: Lexer, private val file: File) {
                 else -> null
             }
 
-            if (node != null) ast += node
+            if (node != null) nodes += node
             else break
         }
 
-        println(ast)
+        return nodes
     }
 
     private fun importExpression(): Import {
@@ -119,7 +124,7 @@ class Parser(lex: Lexer, private val file: File) {
         val fnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val fnName = comparison(TokenType.IDENTIFIER_TOKEN)
         val parameters = mutableListOf<Parameter>()
-        val statements = mutableListOf<Statement>()
+        var statements = mutableListOf<Statement>()
         var colon: Token? = null
         var returnType: Token? = null
         var isComma = false
@@ -141,8 +146,12 @@ class Parser(lex: Lexer, private val file: File) {
         }
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
-        // TODO(parse block)
+        // TODO(parse statements)
+        while (!isEOFToken && tokens[index].tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
+            statements += statementsExpression()
+        }
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
+
         return Function(
             functionKeyword = fnKeyword,
             functionName = fnName,
@@ -160,4 +169,35 @@ class Parser(lex: Lexer, private val file: File) {
 
         return Parameter(name, colon, Type(type))
     }
+
+    private fun statementsExpression(): Statement {
+        val keyword = comparison(TokenType.IDENTIFIER_TOKEN)
+
+        return when (keyword.literal) {
+            Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
+            else -> throw SyntaxError()
+        }
+    }
+
+    private fun variableDeclarationExpression(): Statement.VariableDeclaration {
+        val variableKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val variableName = comparison(TokenType.IDENTIFIER_TOKEN)
+        var colon: Token? = null
+        var variableType: Token? = null
+
+        if (tokens[index].tokenType == TokenType.COLON_TOKEN) {
+            colon = comparison(TokenType.COLON_TOKEN)
+            variableType = comparison(TokenType.IDENTIFIER_TOKEN)
+        }
+
+        comparison(TokenType.EQUAL_TOKEN)
+
+        val expression = expression()
+
+        return Statement.VariableDeclaration(variableKeyword, variableName, variableType?.let { Type(it) })
+    }
+
+//    private fun typeExpression(): Type {
+//        return Type()
+//    }
 }
