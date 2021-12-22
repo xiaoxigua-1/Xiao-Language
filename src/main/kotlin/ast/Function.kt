@@ -1,5 +1,6 @@
 package xiaoLanguage.ast
 
+import xiaoLanguage.tokens.Position
 import xiaoLanguage.tokens.Token
 
 data class Function(
@@ -10,5 +11,6 @@ data class Function(
     val colon: Token?,
     val returnType: Type?,
     val statements: List<Statement>,
-    val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal)
-) : ASTNode
+    val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
+    override val position: Position? = null
+) : Expression()

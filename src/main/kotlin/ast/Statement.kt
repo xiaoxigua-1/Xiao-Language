@@ -9,6 +9,7 @@ sealed class Statement : ASTNode {
     data class VariableDeclaration(
         val variableKeyword: Token,
         val variableName: Token,
+        val colon: Token?,
         val type: Type?,
         val expression: Expression?,
         override val position: Position = variableName.position

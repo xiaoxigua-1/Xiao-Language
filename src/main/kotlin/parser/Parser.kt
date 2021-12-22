@@ -16,7 +16,7 @@ class Parser(lex: Lexer, private val file: File) {
     private val parserReporter = mutableListOf<Report>()
     private var tokens: MutableList<Token> = mutableListOf()
     private val lexerReport = mutableListOf<Report>()
-    private var ast = mutableListOf<ASTNode>()
+    private var ast = mutableListOf<Expression>()
     private var index = 0
 
     init {
@@ -30,7 +30,7 @@ class Parser(lex: Lexer, private val file: File) {
     fun parser() {
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
-                ast = expression(TokenType.EOF)
+                ast = expression() { true }
             } catch (e: Exception) {
                 parserReporter.forEach {
                     it.printReport(file.readLines(), file.absolutePath)
@@ -63,10 +63,11 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
-    private fun expression(endTokenType: TokenType): MutableList<ASTNode> {
-        val nodes = mutableListOf<ASTNode>()
-        while (!isEOFToken && tokens[index].tokenType != endTokenType) {
-            val node: ASTNode? = when (tokens[index].literal) {
+    private fun expression(determine: (MutableList<Expression>) -> Boolean): MutableList<Expression> {
+        val nodes = mutableListOf<Expression>()
+
+        while (!isEOFToken && determine(nodes)) {
+            val node: Expression? = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
                 Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
                 Keyword.IMPORT_KEYWORD.keyword -> importExpression()
@@ -192,9 +193,18 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.EQUAL_TOKEN)
 
-        val expression = expression()
+        val expression = expression() {
+            it.size != 1
+        }[0]
 
-        return Statement.VariableDeclaration(variableKeyword, variableName, variableType?.let { Type(it) })
+        return Statement.VariableDeclaration(
+            variableKeyword,
+            variableName,
+            colon,
+            variableType?.let { Type(it) },
+            expression
+        )
+
     }
 
 //    private fun typeExpression(): Type {

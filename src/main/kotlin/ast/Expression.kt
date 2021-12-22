@@ -4,7 +4,7 @@ import xiaoLanguage.tokens.Position
 import xiaoLanguage.tokens.Token
 
 sealed class Expression : ASTNode {
-    abstract val position: Position;
+    abstract val position: Position?;
 
     data class CallFunctionExpression(
         val path: List<Token>,
