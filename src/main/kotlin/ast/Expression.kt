@@ -12,4 +12,12 @@ sealed class Expression : ASTNode {
         val parameters: List<Parameter>,
         override val position: Position
     ) : Expression()
+
+    data class OperatorExpression(
+        val operators: List<Expression>,
+        override val position: Position? = null
+    ) : Expression()
+
+
+    data class Type(val typeTokens: List<Token>, override val position: Position? = null) : Expression()
 }

@@ -52,15 +52,20 @@ class Parser(lex: Lexer, private val file: File) {
             throw Exception()
         }
         else -> {
-            parserReporter.add(
-                Error(
-                    SyntaxError(
-                        "Unexpected token ${tokens[index].tokenType}, expected token $token"
-                    ), tokens[index].position
-                )
+            syntaxError(
+                SyntaxError(
+                    "Unexpected token ${tokens[index].tokenType}, expected token $token"
+                ), tokens[index].position
             )
+
             throw Exception()
         }
+    }
+
+    private fun syntaxError(exception: Exception, position: Position) {
+        parserReporter += Error(exception, position)
+
+        throw exception
     }
 
     private fun expression(determine: (MutableList<Expression>) -> Boolean): MutableList<Expression> {
@@ -125,9 +130,9 @@ class Parser(lex: Lexer, private val file: File) {
         val fnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val fnName = comparison(TokenType.IDENTIFIER_TOKEN)
         val parameters = mutableListOf<Parameter>()
-        var statements = mutableListOf<Statement>()
+        val statements = mutableListOf<Statement>()
         var colon: Token? = null
-        var returnType: Token? = null
+        var returnType: Expression.Type? = null
         var isComma = false
 
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
@@ -143,7 +148,7 @@ class Parser(lex: Lexer, private val file: File) {
 
         if (tokens[index].tokenType == TokenType.COLON_TOKEN) {
             colon = comparison(TokenType.COLON_TOKEN)
-            returnType = comparison(TokenType.IDENTIFIER_TOKEN)
+            returnType = typeExpression()
         }
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
@@ -158,7 +163,7 @@ class Parser(lex: Lexer, private val file: File) {
             functionName = fnName,
             parameters = parameters,
             colon = colon,
-            returnType = returnType?.let { Type(it) },
+            returnType = returnType,
             statements = statements
         )
     }
@@ -166,9 +171,9 @@ class Parser(lex: Lexer, private val file: File) {
     private fun parameterExpression(): Parameter {
         val name = comparison(TokenType.IDENTIFIER_TOKEN)
         val colon = comparison(TokenType.COLON_TOKEN)
-        val type = comparison(TokenType.IDENTIFIER_TOKEN)
+        val type = typeExpression()
 
-        return Parameter(name, colon, Type(type))
+        return Parameter(name, colon, type)
     }
 
     private fun statementsExpression(): Statement {
@@ -183,31 +188,58 @@ class Parser(lex: Lexer, private val file: File) {
     private fun variableDeclarationExpression(): Statement.VariableDeclaration {
         val variableKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val variableName = comparison(TokenType.IDENTIFIER_TOKEN)
+        val expressions = mutableListOf<Expression>()
         var colon: Token? = null
-        var variableType: Token? = null
+        var variableType: Expression.Type? = null
 
         if (tokens[index].tokenType == TokenType.COLON_TOKEN) {
             colon = comparison(TokenType.COLON_TOKEN)
-            variableType = comparison(TokenType.IDENTIFIER_TOKEN)
+            variableType = typeExpression()
         }
 
         comparison(TokenType.EQUAL_TOKEN)
 
-        val expression = expression() {
-            it.size != 1
-        }[0]
+        while (tokens[index].tokenType in listOf(TokenType.PLUS_TOKEN)) {
+            expressions += expression() {
+                tokens[index].tokenType == TokenType.IDENTIFIER_TOKEN
+            }[0]
+        }
 
         return Statement.VariableDeclaration(
             variableKeyword,
             variableName,
             colon,
-            variableType?.let { Type(it) },
-            expression
+            variableType,
+            Expression.OperatorExpression(expressions)
         )
 
     }
 
-//    private fun typeExpression(): Type {
-//        return Type()
-//    }
+    private fun typeExpression(): Expression.Type {
+        var isLeftSquareBrackets = true
+        val typeTokens = mutableListOf(comparison(TokenType.IDENTIFIER_TOKEN))
+
+        while (!isEOFToken) {
+            when (tokens[index].tokenType) {
+                TokenType.LEFT_SQUARE_BRACKETS_TOKEN -> {
+                    if (isLeftSquareBrackets) {
+                        typeTokens += comparison(TokenType.LEFT_SQUARE_BRACKETS_TOKEN)
+                        isLeftSquareBrackets = false
+                    } else syntaxError(SyntaxError(), tokens[index].position)
+                }
+                TokenType.RIGHT_SQUARE_BRACKETS_TOKEN -> {
+                    if (!isLeftSquareBrackets) {
+                        typeTokens += comparison(TokenType.RIGHT_SQUARE_BRACKETS_TOKEN)
+                        isLeftSquareBrackets = true
+                    } else syntaxError(SyntaxError(), tokens[index].position)
+                }
+                else -> {
+                    if (!isLeftSquareBrackets) syntaxError(SyntaxError(), tokens[index - 1].position)
+                    break
+                }
+            }
+        }
+
+        return Expression.Type(typeTokens)
+    }
 }

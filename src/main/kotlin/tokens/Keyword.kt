@@ -12,5 +12,6 @@ enum class Keyword(val keyword: String) {
     PUBLIC_KEYWORD("public"),
     PROTECTED_KEYWORD("protected"),
     PRIVATE_KEYWORD("private"),
-    IMPORT_KEYWORD("im")
+    IMPORT_KEYWORD("im"),
+    RETURN_KEYWORD("return")
 }
