@@ -9,13 +9,19 @@ sealed class Expression : ASTNode {
     data class CallFunctionExpression(
         val path: List<Token>,
         val functionName: Token,
-        val parameters: List<Parameter>,
-        override val position: Position
+        val args: List<Token>,
+        override val position: Position? = null
     ) : Expression()
 
     data class OperatorExpression(
         val operators: List<Expression>,
         override val position: Position? = null
+    ) : Expression()
+
+    data class VariableExpression(
+        val path: List<Token>,
+        val variableName: Token,
+        override val position: Position = variableName.position
     ) : Expression()
 
 

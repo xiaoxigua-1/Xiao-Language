@@ -1,10 +1,5 @@
 im xiao.Math
 
 fn main(args: Str[]) {
-}
-
-class Test {
-    fn tommyDianShen() {
-        // print("dian shen teach me")
-    }
+    print(10)
 }
