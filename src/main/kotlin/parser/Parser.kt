@@ -27,22 +27,20 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
-    fun parser() {
+    fun parser(): Pair<MutableList<Expression>, MutableList<Report>> {
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
                 ast = expressions { true }
-                println(ast)
             } catch (e: Exception) {
-                parserReporter.forEach {
-                    it.printReport(file.readLines(), file.absolutePath)
-                }
-                println(e)
+                parserReporter += Error(SyntaxError(), tokens[index].position)
             }
         } else {
             lexerReport.forEach {
                 it.printReport(file.readLines(), file.absolutePath)
             }
         }
+
+        return ast to parserReporter
     }
 
     private val isEOFToken: Boolean
