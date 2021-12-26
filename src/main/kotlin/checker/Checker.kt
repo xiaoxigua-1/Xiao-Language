@@ -8,13 +8,16 @@ import java.io.File
 
 class Checker(val ast: MutableList<Expression>) {
     private val checkerReport = mutableListOf<Report>()
+    private val asts = mutableListOf<MutableList<Expression>>()
 
-    fun check() {
+    fun check(): MutableList<MutableList<Expression>> {
         for (node in ast) {
             when (node) {
                 is Import -> checkImport(node)
             }
         }
+
+        return asts
     }
 
     private fun checkImport(node: Import) {
@@ -27,6 +30,6 @@ class Checker(val ast: MutableList<Expression>) {
             }
         }
 
-        Compiler(File(path))
+        asts += Checker(Compiler(File(path)).compile()).check()
     }
 }

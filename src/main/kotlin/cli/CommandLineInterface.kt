@@ -1,5 +1,6 @@
 package xiaoLanguage.cli
 
+import xiaoLanguage.checker.Checker
 import xiaoLanguage.exception.CommandError
 import xiaoLanguage.compiler.Compiler
 import java.io.File
@@ -29,7 +30,7 @@ class CommandLineInterface(private val args: Array<String>) {
     private fun commandBuild() {
         if (args.size > 1) {
             val filePath = args[1]
-            Compiler(File(filePath)).compile()
+            Checker(Compiler(File(filePath)).compile()).check()
         } else throw CommandError("missing file path")
     }
 
