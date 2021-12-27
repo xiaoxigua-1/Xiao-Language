@@ -77,7 +77,11 @@ class Lexer(private val stringStream: StringStream) {
                     val token = slash()
                     if (token != null) tokens += token
                 }
-                in ("0".."9"), Tokens.DOT_TOKEN.token -> tokens += number()
+                in ("0".."9"), Tokens.DOT_TOKEN.token -> {
+                    if (str.isEmpty()) {
+                        tokens += number()
+                    } else str += stringStream.currently
+                }
 
                 else -> {
                     if (str.isEmpty()) start = index

@@ -6,14 +6,15 @@ import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.util.Report
 import java.io.File
 
-class Checker(val ast: MutableList<Expression>) {
+class Checker(val ast: MutableList<Expression>, val mainFilePath: String) {
     private val checkerReport = mutableListOf<Report>()
-    private val asts = mutableListOf<MutableList<Expression>>()
+    private val asts = mutableListOf<Expression>()
 
-    fun check(): MutableList<MutableList<Expression>> {
+    fun check(): MutableList<Expression> {
         for (node in ast) {
             when (node) {
                 is Import -> checkImport(node)
+                else -> asts += node
             }
         }
 
@@ -30,6 +31,8 @@ class Checker(val ast: MutableList<Expression>) {
             }
         }
 
-        asts += Checker(Compiler(File(path)).compile()).check()
+        val file = File("$mainFilePath/$path.xiao")
+
+        asts += Compiler(file).compile()
     }
 }

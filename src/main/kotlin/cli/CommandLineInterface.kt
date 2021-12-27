@@ -30,7 +30,7 @@ class CommandLineInterface(private val args: Array<String>) {
     private fun commandBuild() {
         if (args.size > 1) {
             val filePath = args[1]
-            Checker(Compiler(File(filePath)).compile()).check()
+            Compiler(File(filePath)).compile()
         } else throw CommandError("missing file path")
     }
 

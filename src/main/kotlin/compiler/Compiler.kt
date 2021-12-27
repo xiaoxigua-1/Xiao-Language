@@ -1,9 +1,12 @@
 package xiaoLanguage.compiler
 
+import xiaoLanguage.checker.Checker
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
 import xiaoLanguage.util.StringStream
 import java.io.File
+import java.nio.file.Paths
+import kotlin.io.path.name
 
 class Compiler(private val file: File) {
     fun compile(): MutableList<xiaoLanguage.ast.Expression> {
@@ -17,6 +20,6 @@ class Compiler(private val file: File) {
             it.printReport(file.readLines(), file.absolutePath)
         }
 
-        return ast
+        return Checker(ast, file.absoluteFile.parent).check()
     }
 }

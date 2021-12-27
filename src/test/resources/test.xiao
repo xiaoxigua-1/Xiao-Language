@@ -1,4 +1,4 @@
-im xiao.Math
+im test2
 
 fn main(args: Str[]) {
     print(10)
