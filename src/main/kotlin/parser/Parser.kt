@@ -88,15 +88,14 @@ class Parser(lex: Lexer, private val file: File) {
         val nodes = mutableListOf<Expression>()
 
         while (!isEOFToken && determine(nodes)) {
-            val node: Expression? = when (tokens[index].literal) {
+            val node: Expression = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
                 Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
                 Keyword.IMPORT_KEYWORD.keyword -> importExpression()
-                else -> null
+                else -> expression()
             }
 
-            if (node != null) nodes += node
-            else break
+            nodes += node
         }
 
         return nodes
@@ -112,7 +111,6 @@ class Parser(lex: Lexer, private val file: File) {
                 var isComma = false
 
                 while (!isEOFToken) {
-                    println(args)
                     when (tokens[index].tokenType) {
                         TokenType.RIGHT_PARENTHESES_TOKEN -> {
                             comparison(TokenType.RIGHT_PARENTHESES_TOKEN)

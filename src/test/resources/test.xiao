@@ -1,5 +1,5 @@
 im test2
 
 fn main(args: Str[]) {
-    print(10)
+    java.println(10)
 }

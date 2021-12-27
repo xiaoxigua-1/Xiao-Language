@@ -1,5 +1,6 @@
 package xiaoLanguage.compiler
 
+import xiaoLanguage.ast.Expression
 import xiaoLanguage.checker.Checker
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
@@ -9,7 +10,7 @@ import java.nio.file.Paths
 import kotlin.io.path.name
 
 class Compiler(private val file: File) {
-    fun compile(): MutableList<xiaoLanguage.ast.Expression> {
+    fun compile(): MutableMap<String, MutableList<Expression>> {
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream)
         val parser = Parser(lex, file)
