@@ -6,7 +6,7 @@ import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.util.Report
 import java.io.File
 
-class Checker(val ast: MutableList<Expression>, private val mainFilePath: String) {
+class Checker(val ast: MutableList<Expression>, private val mainFile: File) {
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<Expression>>()
 
@@ -20,7 +20,7 @@ class Checker(val ast: MutableList<Expression>, private val mainFilePath: String
             }
         }
 
-        asts["main"] = checkAST
+        asts[mainFile.nameWithoutExtension] = checkAST
 
         return asts
     }
@@ -31,12 +31,12 @@ class Checker(val ast: MutableList<Expression>, private val mainFilePath: String
                 ""
             }
             else -> {
-                node.path.joinToString("") { it.literal }
+                node.path.joinToString("/") { it.literal }
             }
         }
 
-        val file = File("$mainFilePath/$path.xiao")
+        val file = File("${mainFile.absoluteFile.parent}/$path.xiao")
 
-        asts[node.path[node.path.size - 1].literal] = Compiler(file).compile()["main"]!!
+        asts[path] = Compiler(file).compile()[file.nameWithoutExtension]!!
     }
 }

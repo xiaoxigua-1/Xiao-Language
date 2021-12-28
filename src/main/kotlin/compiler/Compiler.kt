@@ -21,6 +21,6 @@ class Compiler(private val file: File) {
             it.printReport(file.readLines(), file.absolutePath)
         }
 
-        return Checker(ast, file.absoluteFile.parent).check()
+        return Checker(ast, file).check()
     }
 }

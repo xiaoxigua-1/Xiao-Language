@@ -1,5 +1,3 @@
-im test2
-
 fn main(args: Str[]) {
-    java.println(10)
+    print("hi")
 }

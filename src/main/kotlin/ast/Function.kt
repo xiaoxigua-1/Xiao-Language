@@ -13,4 +13,9 @@ data class Function(
     val statements: List<Statement>,
     val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
     override val position: Position? = null
-) : Expression()
+) : Expression() {
+    val parametersDescriptor
+        get() = parameters.joinToString(";") { it.type.descriptor }
+    val returnTypeDescriptor
+        get() = returnType?.descriptor ?: "V"
+}
