@@ -16,7 +16,7 @@ class Parser(lex: Lexer, private val file: File) {
     private val parserReporter = mutableListOf<Report>()
     private var tokens: MutableList<Token> = mutableListOf()
     private val lexerReport = mutableListOf<Report>()
-    private var ast = mutableListOf<Expression>()
+    private var ast = mutableListOf<ASTNode>()
     private var index = 0
 
     init {
@@ -27,7 +27,7 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
-    fun parser(): Pair<MutableList<Expression>, MutableList<Report>> {
+    fun parser(): Pair<MutableList<ASTNode>, MutableList<Report>> {
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
                 ast = expressions { true }
@@ -84,11 +84,11 @@ class Parser(lex: Lexer, private val file: File) {
         throw exception
     }
 
-    private fun expressions(determine: (MutableList<Expression>) -> Boolean): MutableList<Expression> {
-        val nodes = mutableListOf<Expression>()
+    private fun expressions(determine: (MutableList<ASTNode>) -> Boolean): MutableList<ASTNode> {
+        val nodes = mutableListOf<ASTNode>()
 
         while (!isEOFToken && determine(nodes)) {
-            val node: Expression = when (tokens[index].literal) {
+            val node: ASTNode = when (tokens[index].literal) {
                 Keyword.CLASS_KEYWORD.keyword -> classExpression()
                 Keyword.FUNCTION_KEYWORD.keyword -> functionExpression()
                 Keyword.IMPORT_KEYWORD.keyword -> importExpression()
@@ -252,11 +252,11 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.EQUAL_TOKEN)
 
-        while (tokens[index].tokenType in listOf(TokenType.PLUS_TOKEN)) {
-            expressions += expressions {
-                tokens[index].tokenType == TokenType.IDENTIFIER_TOKEN
-            }[0]
-        }
+//        while (tokens[index].tokenType in listOf(TokenType.PLUS_TOKEN)) {
+//            expressions += expressions {
+//                tokens[index].tokenType == TokenType.IDENTIFIER_TOKEN
+//            }[0]
+//        }
 
         return Statement.VariableDeclaration(
             variableKeyword,

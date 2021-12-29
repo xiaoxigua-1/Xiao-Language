@@ -7,5 +7,4 @@ data class Class(
     val classKeyword: Token,
     val className: Token,
     val functions: MutableList<Function>,
-    override val position: Position? = null
-) : Expression()
+) : ASTNode

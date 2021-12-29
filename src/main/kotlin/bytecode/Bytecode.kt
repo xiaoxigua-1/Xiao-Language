@@ -45,6 +45,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<Expression>>, private val
             function.functionName.literal,
             "(${function.parametersDescriptor})${function.returnTypeDescriptor}",
             null,
-            null)
+            null
+        )
     }
 }

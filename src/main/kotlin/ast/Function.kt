@@ -9,11 +9,10 @@ data class Function(
     val functionName: Token,
     val parameters: List<Parameter>,
     val colon: Token?,
-    val returnType: Type?,
+    val returnType: Expression.Type?,
     val statements: List<Statement>,
     val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
-    override val position: Position? = null
-) : Expression() {
+) : ASTNode {
     val parametersDescriptor
         get() = parameters.joinToString(";") { it.type.descriptor }
     val returnTypeDescriptor
