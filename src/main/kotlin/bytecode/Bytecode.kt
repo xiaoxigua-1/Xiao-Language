@@ -3,11 +3,12 @@ package xiaoLanguage.bytecode
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type.*
+import xiaoLanguage.ast.ASTNode
 import xiaoLanguage.ast.Expression
 import xiaoLanguage.ast.Function
 import java.io.File
 
-class Bytecode(val ast: MutableMap<String, MutableList<Expression>>, private val outputPath: String) {
+class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val outputPath: String) {
     fun toByte() {
         for (clazz in ast) {
             val byte = writeClass(clazz.key, clazz.value, "${clazz.key}.xiao")
@@ -16,7 +17,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<Expression>>, private val
         }
     }
 
-    private fun writeClass(className: String, members: MutableList<Expression>, source: String): ByteArray {
+    private fun writeClass(className: String, members: MutableList<ASTNode>, source: String): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         cw.visit(
             61,

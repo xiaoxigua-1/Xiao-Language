@@ -10,7 +10,7 @@ sealed class Statement : ASTNode {
         val variableKeyword: Token,
         val variableName: Token,
         val colon: Token?,
-        val type: Expression.Type?,
+        val type: Type?,
         val expression: Expression?,
         override val position: Position = variableName.position
     ): Statement()
@@ -22,7 +22,7 @@ sealed class Statement : ASTNode {
 
     data class ReturnStatement(
         val expression: Expression?,
-        var returnType: Expression.Type? = null,
+        var returnType: Type? = null,
         override val position: Position? = expression?.position
     ) : Statement()
 
