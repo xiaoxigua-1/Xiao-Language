@@ -2,9 +2,9 @@ package xiaoLanguage.util
 
 import java.io.File
 
-class StringStream(private val file: File) {
+class StringStream(file: File) {
     private val fileContent = file.readText()
-    var index = 0
+    private var index = 0
 
     fun nextChar() {
         index += 1
@@ -19,5 +19,4 @@ class StringStream(private val file: File) {
 
     val isEOF: Boolean
         get() = index > fileContent.length - 1
-
 }

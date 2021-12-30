@@ -167,7 +167,7 @@ class Parser(lex: Lexer, private val file: File) {
         val path = mutableListOf<Token>()
         var isDot = false
 
-        while (index < tokens.size) {
+        while (!isEOFToken) {
             if (!isDot) {
                 isDot = true
                 path += comparison(TokenType.IDENTIFIER_TOKEN)
@@ -175,7 +175,7 @@ class Parser(lex: Lexer, private val file: File) {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
                     isDot = false
-                } else if (currently!!.position.lineNumber == lineNumber) break
+                } else if (currently!!.position.lineNumber != lineNumber) break
             }
         }
 
@@ -196,7 +196,7 @@ class Parser(lex: Lexer, private val file: File) {
         val functions = mutableListOf<Function>()
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
-        // TODO(parse functions)
+
         while (!isEOFToken && currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
             when (currently?.literal) {
                 Keyword.FUNCTION_KEYWORD.keyword -> functions += functionExpression()
@@ -235,7 +235,7 @@ class Parser(lex: Lexer, private val file: File) {
         }
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
-        // TODO(parse statements)
+
         while (!isEOFToken && currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
             statements += statementsExpression()
         }
@@ -289,7 +289,7 @@ class Parser(lex: Lexer, private val file: File) {
 
         while (!isEOFToken) {
             when (currently?.tokenType) {
-                TokenType.IDENTIFIER_TOKEN, TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN -> {
+                TokenType.IDENTIFIER_TOKEN, TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN -> {
                     if (expressions.size > 1 && operator == null) {
                         if (brackets) syntaxError(SyntaxError(), currently?.position)
                         break

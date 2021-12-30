@@ -1,1 +1,4 @@
-var abc = 10
+im test2
+fn main(args: Str[]) {
+    var a = "20' 30"
+}

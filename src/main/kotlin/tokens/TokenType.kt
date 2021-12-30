@@ -19,5 +19,6 @@ enum class TokenType {
     MULTIPLY_TOKEN,
     EQUAL_TOKEN,
     DOT_TOKEN,
+    DOUBLE_EQUAL_TOKEN,
     EOF
 }

@@ -69,9 +69,7 @@ class Lexer(private val stringStream: StringStream) {
                 Tokens.COMMA_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.COMMA_TOKEN
                 )
-                Tokens.EQUAL_TOKEN.token -> tokens += Token(
-                    stringStream.currently, Position(lineNumber, index), TokenType.EQUAL_TOKEN
-                )
+                Tokens.EQUAL_TOKEN.token -> tokens += equal()
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> tokens += string()
                 Tokens.SLASH_TOKEN.token -> {
                     val token = slash()
@@ -99,6 +97,7 @@ class Lexer(private val stringStream: StringStream) {
     private fun string(): Token {
         var str = ""
         val start = index
+        val quotes = stringStream.currently
         exceptionIndex = index++
 
         stringStream.nextChar()
@@ -116,9 +115,11 @@ class Lexer(private val stringStream: StringStream) {
                     }
                 }
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> {
-                    return Token(
-                        str, Position(lineNumber, start, index), TokenType.STRING_LITERAL_TOKEN
-                    )
+                    if (stringStream.currently == quotes) {
+                        return Token(
+                            str, Position(lineNumber, start, index), TokenType.STRING_LITERAL_TOKEN
+                        )
+                    } else str += stringStream.currently
                 }
                 "\n", "\r" -> {
                     index = 0
@@ -136,8 +137,8 @@ class Lexer(private val stringStream: StringStream) {
     private fun number(): Token {
         var str = ""
         val start = index
-        exceptionIndex = index
         var isFloat = false
+        exceptionIndex = index
 
         // float .3
         when (stringStream.currently) {
@@ -225,8 +226,9 @@ class Lexer(private val stringStream: StringStream) {
                     stringStream.nextChar()
                 }
             }
-            else ->{
+            else -> {
                 stringStream.backChar()
+
                 return Token(
                     str,
                     Position(lineNumber, index),
@@ -236,5 +238,20 @@ class Lexer(private val stringStream: StringStream) {
         }
 
         throw SyntaxError()
+    }
+
+    private fun equal(): Token {
+        stringStream.nextChar()
+
+        return if (stringStream.currently == Tokens.EQUAL_TOKEN.token) {
+            Token(
+                stringStream.currently, Position(lineNumber, index), TokenType.DOUBLE_EQUAL_TOKEN
+            )
+        } else {
+            stringStream.backChar()
+            Token(
+                stringStream.currently, Position(lineNumber, index), TokenType.EQUAL_TOKEN
+            )
+        }
     }
 }
