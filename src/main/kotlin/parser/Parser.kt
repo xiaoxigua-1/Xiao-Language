@@ -155,9 +155,9 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     private fun statementsExpression(): Statement {
-        println(currently)
         return when (currently?.literal) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
+            Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
             else -> Statement.ExpressionStatement(expression())
         }
     }
@@ -267,7 +267,6 @@ class Parser(lex: Lexer, private val file: File) {
 
         val value = operatorExpression()
 
-
         return Statement.VariableDeclaration(
             variableKeyword,
             variableName,
@@ -275,6 +274,82 @@ class Parser(lex: Lexer, private val file: File) {
             variableType,
             value
         )
+    }
+
+    private fun ifStatementExpression(): Statement.IfStatement {
+        val ifStatementKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val statements = mutableListOf<Statement>()
+        val elseStatement = mutableListOf<Statement.ElseStatement>()
+        var conditional: Expression? = null
+        comparison(TokenType.LEFT_PARENTHESES_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_PARENTHESES_TOKEN -> break
+                else -> conditional = operatorExpression()
+            }
+        }
+
+        comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_CURLY_BRACKETS_TOKEN -> break
+                else -> statements += statementsExpression()
+            }
+        }
+        comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.IDENTIFIER_TOKEN -> {
+                    if (currently?.literal == Keyword.ELSE_KEYWORD.keyword) {
+                        elseStatement += elseStatementExpression()
+                    } else break
+                }
+                else -> break
+            }
+        }
+
+        return Statement.IfStatement(
+            ifStatementKeyword,
+            conditional,
+            statements,
+            elseStatement,
+            ifStatementKeyword.position
+        )
+    }
+
+    private fun elseStatementExpression(): Statement.ElseStatement {
+        val elseKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val statements = mutableListOf<Statement>()
+        var ifKeyword: Token? = null
+        var conditional: Expression? = null
+
+        if (currently?.tokenType == TokenType.IDENTIFIER_TOKEN) {
+            if (currently?.literal == Keyword.IF_KEYWORD.keyword) {
+                ifKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+                comparison(TokenType.LEFT_PARENTHESES_TOKEN)
+
+                while (!isEOFToken) {
+                    when (currently?.tokenType) {
+                        TokenType.RIGHT_PARENTHESES_TOKEN -> break
+                        else -> conditional = expression()
+                    }
+                }
+            } else syntaxError(SyntaxError(), currently?.position)
+        }
+
+        comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_CURLY_BRACKETS_TOKEN -> break
+                else -> statements += statementsExpression()
+            }
+        }
+
+        return Statement.ElseStatement(elseKeyword, ifKeyword, conditional, statements)
     }
 
     private fun operatorExpression(): Expression {

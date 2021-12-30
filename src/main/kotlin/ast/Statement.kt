@@ -27,8 +27,17 @@ sealed class Statement : ASTNode {
     ) : Statement()
 
     data class IfStatement(
-        val expression: Expression?,
+        val ifKeyword: Token,
+        val conditional: Expression?,
         val statements: List<Statement>,
+        val elseStatement: List<ElseStatement>,
         override val position: Position?
     ) : Statement()
+
+    data class ElseStatement(
+        val elseKeyword: Token,
+        val ifKeyword: Token?,
+        val conditional: Expression?,
+        val statements: List<Statement>
+    )
 }
