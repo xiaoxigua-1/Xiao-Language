@@ -32,7 +32,8 @@ class Parser(lex: Lexer, private val file: File) {
             try {
                 ast = expressions { true }
             } catch (e: Exception) {
-                parserReporter += Error(e, currently?.position)
+                if (e !is SyntaxError)
+                    parserReporter += Error(e, currently?.position)
             }
         } else {
             lexerReport.forEach {
@@ -106,12 +107,18 @@ class Parser(lex: Lexer, private val file: File) {
 
     private fun expression(): Expression {
         val path = if (currently?.tokenType == TokenType.IDENTIFIER_TOKEN) path()
-        else listOf(comparison(TokenType.STRING_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.INTEGER_LITERAL_TOKEN))
+        else listOf(
+            comparison(
+                TokenType.STRING_LITERAL_TOKEN,
+                TokenType.FLOAT_LITERAL_TOKEN,
+                TokenType.INTEGER_LITERAL_TOKEN
+            )
+        )
 
         when (currently?.tokenType) {
             TokenType.LEFT_PARENTHESES_TOKEN -> {
                 comparison(TokenType.LEFT_PARENTHESES_TOKEN)
-                val args = mutableListOf<Token>()
+                val args = mutableListOf<Expression>()
                 var isComma = false
 
                 while (!isEOFToken) {
@@ -126,15 +133,32 @@ class Parser(lex: Lexer, private val file: File) {
                         }
                         else -> {
                             if (isComma) syntaxError(SyntaxError(), currently?.position)
-                            args += comparison(TokenType.IDENTIFIER_TOKEN, TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN)
+                            args += expression()
                             isComma = true
                         }
                     }
                 }
+
                 return Expression.CallFunctionExpression(path, path[path.size - 1], args)
             }
 
             else -> return Expression.VariableExpression(path, path[path.size - 1])
+        }
+    }
+
+    private fun parameterExpression(): Parameter {
+        val name = comparison(TokenType.IDENTIFIER_TOKEN)
+        val colon = comparison(TokenType.COLON_TOKEN)
+        val type = typeExpression()
+
+        return Parameter(name, colon, type)
+    }
+
+    private fun statementsExpression(): Statement {
+        println(currently)
+        return when (currently?.literal) {
+            Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
+            else -> Statement.ExpressionStatement(expression())
         }
     }
 
@@ -227,22 +251,6 @@ class Parser(lex: Lexer, private val file: File) {
         )
     }
 
-    private fun parameterExpression(): Parameter {
-        val name = comparison(TokenType.IDENTIFIER_TOKEN)
-        val colon = comparison(TokenType.COLON_TOKEN)
-        val type = typeExpression()
-
-        return Parameter(name, colon, type)
-    }
-
-    private fun statementsExpression(): Statement {
-        println(currently)
-        return when (currently?.literal) {
-            Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
-            else -> Statement.ExpressionStatement(expression())
-        }
-    }
-
     private fun variableDeclarationExpression(): Statement.VariableDeclaration {
         val variableKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val variableName = comparison(TokenType.IDENTIFIER_TOKEN)
@@ -294,8 +302,7 @@ class Parser(lex: Lexer, private val file: File) {
                     if (brackets) {
                         comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
                         break
-                    }
-                    else syntaxError(SyntaxError(), currently?.position)
+                    } else syntaxError(SyntaxError(), currently?.position)
                 }
                 else -> {
                     if (currently?.tokenType !in listOf(
