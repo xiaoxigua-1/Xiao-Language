@@ -158,14 +158,17 @@ class Parser(lex: Lexer, private val file: File) {
         return when (currently?.literal) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
             Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
+            Keyword.RETURN_KEYWORD.keyword -> returnStatementExpression()
             else -> Statement.ExpressionStatement(expression())
         }
     }
 
     private fun path(): List<Token> {
-        val lineNumber = currently!!.position.lineNumber
+        val lineNumber = currently?.position?.lineNumber
         val path = mutableListOf<Token>()
         var isDot = false
+
+        if (lineNumber == null) syntaxError(SyntaxError(), tokens[index - 1].position)
 
         while (!isEOFToken) {
             if (!isDot) {
@@ -350,6 +353,13 @@ class Parser(lex: Lexer, private val file: File) {
         }
 
         return Statement.ElseStatement(elseKeyword, ifKeyword, conditional, statements)
+    }
+
+    private fun returnStatementExpression(): Statement.ReturnStatement {
+        val returnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val expression = expression()
+
+        return Statement.ReturnStatement(returnKeyword, expression)
     }
 
     private fun operatorExpression(): Expression {

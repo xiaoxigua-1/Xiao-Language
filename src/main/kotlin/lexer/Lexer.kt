@@ -91,6 +91,12 @@ class Lexer(private val stringStream: StringStream) {
             index++
         }
 
+        if (str.isNotEmpty()) {
+            tokens += Token(
+                str, Position(lineNumber, start, start + str.length - 1), TokenType.IDENTIFIER_TOKEN
+            )
+        }
+
         return tokens
     }
 

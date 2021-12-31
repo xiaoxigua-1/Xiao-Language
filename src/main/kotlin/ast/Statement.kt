@@ -21,6 +21,7 @@ sealed class Statement : ASTNode {
     ) : Statement()
 
     data class ReturnStatement(
+        val returnKeyword: Token,
         val expression: Expression?,
         var returnType: Type? = null,
         override val position: Position? = expression?.position
