@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class ParserTest {
     @Test
     fun parserTest() {
-        val file = File(this::class.java.getResource("/test.xiao").path)
+        val file = File(this::class.java.getResource("/test.xiao")!!.path)
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream)
         val parser = Parser(lex, file)
@@ -18,14 +18,14 @@ class ParserTest {
 
     @Test
     fun parserImportTest() {
-        val assertData = listOf("xiao/Math", "test2")
-        val file = File(this::class.java.getResource("/import/import.xiao").path)
+        val assertData = listOf("xiao/Math", "test2", "xiao/Math/plus")
+        val file = File(this::class.java.getResource("/import/import.xiao")!!.path)
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream)
         val parser = Parser(lex, file)
-        val (ast, report) = parser.parser()
+        val (ast, reports) = parser.parser()
 
-        for (report in report) {
+        for (report in reports) {
             report.printReport(file.readLines(), "/import/import.xiao")
         }
 
