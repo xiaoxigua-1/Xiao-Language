@@ -2,6 +2,9 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+orbs: 
+  telegram: uniqueck/telegram-orb@0.0.1
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -23,6 +26,7 @@ jobs:
             chmod +x ./gradlew &&
             echo "Young dian shen" &&
             ./gradlew test
+      - telegram/status
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
