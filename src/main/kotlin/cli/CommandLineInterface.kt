@@ -6,7 +6,7 @@ import xiaoLanguage.compiler.Compiler
 import java.io.File
 
 class CommandLineInterface(private val args: Array<String>) {
-    init {
+    fun init() {
         if (args.isNotEmpty()) run()
         else commandRun()
     }
