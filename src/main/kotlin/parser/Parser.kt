@@ -146,6 +146,11 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
+    /**
+     * parse parameter
+     * example "**a: Str**"
+     * @return Parameter data class
+     */
     private fun parameterExpression(): Parameter {
         val name = comparison(TokenType.IDENTIFIER_TOKEN)
         val colon = comparison(TokenType.COLON_TOKEN)
@@ -163,6 +168,11 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
+    /**
+     * parse path or value
+     * example "**a.b.c**" or Int or String or Float
+     * @return Token list
+     */
     private fun path(): List<Token> {
         val lineNumber = currently?.position?.lineNumber
         val path = mutableListOf<Token>()
@@ -187,12 +197,22 @@ class Parser(lex: Lexer, private val file: File) {
         return path
     }
 
+    /**
+     * parse import
+     * example "**im xiao.Math**"
+     * @return Import data class
+     */
     private fun importExpression(): Import {
         val importKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
 
         return Import(importKeyword, path())
     }
 
+    /**
+     * parse class
+     * example "**class A {...}**"
+     * @return Parameter data class
+     */
     private fun classExpression(): Class {
         val classKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val className = comparison(TokenType.IDENTIFIER_TOKEN)
@@ -212,6 +232,11 @@ class Parser(lex: Lexer, private val file: File) {
         return Class(classKeyword = classKeyword, className = className, functions = functions)
     }
 
+    /**
+     * parse function
+     * example "**fn a(a: Str, ...) {...}**"
+     * @return Function data class
+     */
     private fun functionExpression(): Function {
         val fnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val fnName = comparison(TokenType.IDENTIFIER_TOKEN)
@@ -257,6 +282,11 @@ class Parser(lex: Lexer, private val file: File) {
         )
     }
 
+    /**
+     * parse variable declaration
+     * example "**var a = 10**"
+     * @return Variable declaration data class
+     */
     private fun variableDeclarationExpression(): Statement.VariableDeclaration {
         val variableKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val variableName = comparison(TokenType.IDENTIFIER_TOKEN)

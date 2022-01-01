@@ -10,12 +10,18 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserTest {
-    data class ExpectedClassData(val name: String)
+    data class ExpectedClassData(val name: String, val functions: List<String>? = null)
 
-    data class ExpectedFunctionData(val name: String, val parameter: List<String>? = null, val parameterType: List<String>? = null, val returnType: String? = null)
-    /*
-        parse to Abstract Syntax Tree
-    */
+    data class ExpectedFunctionData(
+        val name: String,
+        val parameter: List<String>? = null,
+        val parameterType: List<String>? = null,
+        val returnType: String? = null
+    )
+
+    /**
+     * parse to Abstract Syntax Tree
+     */
     private fun parserTest(filePath: String): MutableList<ASTNode> {
         val file = File(this::class.java.getResource(filePath)!!.path)
         val stringStream = StringStream(file)
@@ -30,9 +36,9 @@ class ParserTest {
         return ast
     }
 
-    /*
-        The correctness of parse import
-    */
+    /**
+     * The correctness of parse import
+     */
     @Test
     fun parserImportTest() {
         val expectedData = listOf("xiao/Math", "test2", "xiao/Math/plus")
@@ -47,9 +53,9 @@ class ParserTest {
         }
     }
 
-    /*
-        The correctness of parse function
-    */
+    /**
+     * The correctness of parse function
+     */
     @Test
     fun parserFunctionTest() {
         val expectedData = listOf(
@@ -77,8 +83,8 @@ class ParserTest {
         }
     }
 
-    /*
-        The correctness of parse class
+    /**
+     * The correctness of parse class
      */
     @Test
     fun parserClassTest() {
@@ -86,12 +92,16 @@ class ParserTest {
         val expectedData = listOf(
             ExpectedClassData("A"),
             ExpectedClassData("B12"),
-            ExpectedClassData("ABC")
+            ExpectedClassData("ABC", listOf("test"))
         )
 
         ast.mapIndexed { index, astNode ->
             if (astNode is Class) {
                 assertEquals(expectedData[index].name, astNode.className.literal)
+
+                astNode.functions.mapIndexed { index2, function ->
+                    assertEquals(expectedData[index].functions?.get(index2), function.functionName.literal)
+                }
             }
         }
     }
