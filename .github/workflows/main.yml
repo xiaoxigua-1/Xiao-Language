@@ -30,6 +30,9 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Set outputs
+        id: cloc
+        run: echo "::set-output name=cloc::$(cloc src)"
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
@@ -46,11 +49,11 @@ jobs:
             [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
             
             Repository: ${{ github.repository }}
-#       - name: Telegram Notify cloc
-#         uses: appleboy/telegram-action@master
-#         with:
-#           to: ${{ secrets.TELEGRAM_TO }}
-#           token: ${{ secrets.TELEGRAM_TOKEN }}
-#           message: |
-#             cloc: 
-#             ${{(cloc src)}}
+      - name: Telegram Notify cloc
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            cloc: 
+            ${{${{steps.cloc.outputs.cloc}}}}
