@@ -41,9 +41,10 @@ class ParserTest {
 
     @Test
     fun parserFunctionTest() {
-        val assertDataName = listOf("main", "test23", "test33", "test34")
-        val assertDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"))
-        val assertDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"))
+        val assertDataName = listOf("main", "test23", "test33", "test34", "test66")
+        val assertDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"), null)
+        val assertDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"), null)
+        val assertDataReturnType = listOf(null, null, null, null, "Str")
         val file = File(this::class.java.getResource("/functions/functions.xiao")!!.path)
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream)
@@ -63,6 +64,8 @@ class ParserTest {
                     assertEquals(assertDataArgsName[index]?.get(index2), parameter.name.literal)
                     assertEquals(assertDataArgsType[index]?.get(index2), parameter.type.typeTokens.literal)
                 }
+
+                assertEquals(assertDataReturnType[index], node.returnType?.typeTokens?.literal)
             }
         }
     }

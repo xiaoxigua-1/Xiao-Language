@@ -2,3 +2,4 @@ fn main() {}
 fn test23() {}
 fn test33(name: Str) {}
 fn test34(name: Str, info: Int) {}
+fn test66(): Str {}
