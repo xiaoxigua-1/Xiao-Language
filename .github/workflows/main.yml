@@ -24,16 +24,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: npm install cloc -g
       - name: Set outputs
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      - name: Set outputs
-        id: cloc
-        run: echo "::set-output name=cloc::$(echo $(cloc src))"
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
@@ -49,11 +42,3 @@ jobs:
             [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
             
             Repository: ${{ github.repository }}
-      - run: echo ${{steps.cloc.outputs.cloc}}
-      - name: Telegram Notify cloc
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            ${{steps.cloc.outputs.cloc}}
