@@ -33,7 +33,7 @@ jobs:
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Set outputs
         id: cloc
-        run: echo "::set-output name=cloc::$(cloc src)"
+        run: echo "::set-output name=cloc::$(echo $(cloc src))"
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
