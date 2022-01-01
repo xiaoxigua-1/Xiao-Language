@@ -92,7 +92,8 @@ class ParserTest {
         val expectedData = listOf(
             ExpectedClassData("A"),
             ExpectedClassData("B12"),
-            ExpectedClassData("ABC", listOf("test"))
+            ExpectedClassData("ABC", listOf("test")),
+            ExpectedClassData("AAC", listOf("test", "test2"))
         )
 
         ast.mapIndexed { index, astNode ->

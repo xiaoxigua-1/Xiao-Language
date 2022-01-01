@@ -3,3 +3,7 @@ class B12 {}
 class ABC {
     fn test() {}
 }
+class AAC {
+    fn test() {}
+    fn test2() {}
+}
