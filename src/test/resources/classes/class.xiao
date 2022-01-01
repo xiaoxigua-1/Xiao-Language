@@ -7,3 +7,6 @@ class AAC {
     fn test() {}
     fn test2() {}
 }
+class AAA {
+    fn test(name: Str) {}
+}

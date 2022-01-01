@@ -10,7 +10,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserTest {
-    data class ExpectedClassData(val name: String, val functions: List<String>? = null)
+    data class ExpectedClassData(
+        val name: String,
+        val functions: List<String>? = null,
+        val functionParameters: List<String>? = null,
+        val functionParameterType: List<String>? = null
+    )
 
     data class ExpectedFunctionData(
         val name: String,
@@ -93,7 +98,8 @@ class ParserTest {
             ExpectedClassData("A"),
             ExpectedClassData("B12"),
             ExpectedClassData("ABC", listOf("test")),
-            ExpectedClassData("AAC", listOf("test", "test2"))
+            ExpectedClassData("AAC", listOf("test", "test2")),
+            ExpectedClassData("AAA", listOf("test"), listOf("name"), listOf("Str"))
         )
 
         ast.mapIndexed { index, astNode ->
@@ -102,6 +108,13 @@ class ParserTest {
 
                 astNode.functions.mapIndexed { index2, function ->
                     assertEquals(expectedData[index].functions?.get(index2), function.functionName.literal)
+                    function.parameters.mapIndexed { index3, parameter ->
+                        assertEquals(expectedData[index].functionParameters?.get(index3), parameter.name.literal)
+                        assertEquals(
+                            expectedData[index].functionParameterType?.get(index3),
+                            parameter.type.typeTokens.literal
+                        )
+                    }
                 }
             }
         }
