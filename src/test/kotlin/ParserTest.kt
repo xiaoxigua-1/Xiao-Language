@@ -10,6 +10,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ParserTest {
+    data class ExpectedClassData(val name: String)
+
+    data class ExpectedFunctionData(val name: String, val parameter: List<String>? = null, val parameterType: List<String>? = null, val returnType: String? = null)
     /*
         parse to Abstract Syntax Tree
     */
@@ -49,24 +52,27 @@ class ParserTest {
     */
     @Test
     fun parserFunctionTest() {
-        val expectedDataName = listOf("main", "test23", "test33", "test34", "test66")
-        val expectedDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"), null)
-        val expectedDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"), null)
-        val expectedDataReturnType = listOf(null, null, null, null, "Str")
+        val expectedData = listOf(
+            ExpectedFunctionData("main"),
+            ExpectedFunctionData("test23"),
+            ExpectedFunctionData("test33", listOf("name"), listOf("Str")),
+            ExpectedFunctionData("test34", listOf("name", "info"), listOf("Str", "Int")),
+            ExpectedFunctionData("test66", null, null, "Str")
+        )
         val ast = parserTest("/functions/function.xiao")
 
         ast.mapIndexed { index, node ->
             if (node is Function) {
                 val name = node.functionName.literal
 
-                assertEquals(expectedDataName[index], name)
+                assertEquals(expectedData[index].name, name)
 
                 node.parameters.mapIndexed { index2, parameter ->
-                    assertEquals(expectedDataArgsName[index]?.get(index2), parameter.name.literal)
-                    assertEquals(expectedDataArgsType[index]?.get(index2), parameter.type.typeTokens.literal)
+                    assertEquals(expectedData[index].parameter?.get(index2), parameter.name.literal)
+                    assertEquals(expectedData[index].parameterType?.get(index2), parameter.type.typeTokens.literal)
                 }
 
-                assertEquals(expectedDataReturnType[index], node.returnType?.typeTokens?.literal)
+                assertEquals(expectedData[index].returnType, node.returnType?.typeTokens?.literal)
             }
         }
     }
@@ -77,11 +83,15 @@ class ParserTest {
     @Test
     fun parserClassTest() {
         val ast = parserTest("/classes/class.xiao")
-        val expectedDataName = listOf("A", "B12", "ABC")
+        val expectedData = listOf(
+            ExpectedClassData("A"),
+            ExpectedClassData("B12"),
+            ExpectedClassData("ABC")
+        )
 
         ast.mapIndexed { index, astNode ->
             if (astNode is Class) {
-                assertEquals(expectedDataName[index], astNode.className.literal)
+                assertEquals(expectedData[index].name, astNode.className.literal)
             }
         }
     }
