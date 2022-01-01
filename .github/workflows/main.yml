@@ -53,4 +53,4 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             cloc: 
-            ${{$(cloc src)}}
+            ${{(cloc src)}}
