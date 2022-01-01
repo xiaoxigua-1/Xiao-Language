@@ -25,38 +25,38 @@ class ParserTest {
 
     @Test
     fun parserImportTest() {
-        val assertData = listOf("xiao/Math", "test2", "xiao/Math/plus")
+        val expectedData = listOf("xiao/Math", "test2", "xiao/Math/plus")
         val ast = parserTest("/import/import.xiao")
 
         ast.mapIndexed { index ,node ->
             if (node is Import) {
                 val path = node.path.joinToString("/") { it.literal }
 
-                assertEquals(assertData[index] , path)
+                assertEquals(expectedData[index] , path)
             }
         }
     }
 
     @Test
     fun parserFunctionTest() {
-        val assertDataName = listOf("main", "test23", "test33", "test34", "test66")
-        val assertDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"), null)
-        val assertDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"), null)
-        val assertDataReturnType = listOf(null, null, null, null, "Str")
+        val expectedDataName = listOf("main", "test23", "test33", "test34", "test66")
+        val expectedDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"), null)
+        val expectedDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"), null)
+        val expectedDataReturnType = listOf(null, null, null, null, "Str")
         val ast = parserTest("/functions/functions.xiao")
 
         ast.mapIndexed { index ,node ->
             if (node is Function) {
                 val name = node.functionName.literal
 
-                assertEquals(assertDataName[index] , name)
+                assertEquals(expectedDataName[index] , name)
 
                 node.parameters.mapIndexed { index2, parameter ->
-                    assertEquals(assertDataArgsName[index]?.get(index2), parameter.name.literal)
-                    assertEquals(assertDataArgsType[index]?.get(index2), parameter.type.typeTokens.literal)
+                    assertEquals(expectedDataArgsName[index]?.get(index2), parameter.name.literal)
+                    assertEquals(expectedDataArgsType[index]?.get(index2), parameter.type.typeTokens.literal)
                 }
 
-                assertEquals(assertDataReturnType[index], node.returnType?.typeTokens?.literal)
+                assertEquals(expectedDataReturnType[index], node.returnType?.typeTokens?.literal)
             }
         }
     }
