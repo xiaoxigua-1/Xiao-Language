@@ -227,7 +227,10 @@ class Parser(lex: Lexer, private val file: File) {
             if (!isComma) {
                 isComma = true
                 parameters += parameterExpression()
-            } else isComma = false
+            } else {
+                comparison(TokenType.COMMA_TOKEN)
+                isComma = false
+            }
         }
 
         comparison(TokenType.RIGHT_PARENTHESES_TOKEN)

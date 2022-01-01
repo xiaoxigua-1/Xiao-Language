@@ -1,3 +1,4 @@
+import xiaoLanguage.ast.Function
 import xiaoLanguage.ast.Import
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
@@ -34,6 +35,34 @@ class ParserTest {
                 val path = node.path.joinToString("/") { it.literal }
 
                 assertEquals(assertData[index] , path)
+            }
+        }
+    }
+
+    @Test
+    fun parserFunctionTest() {
+        val assertDataName = listOf("main", "test23", "test33", "test34")
+        val assertDataArgsName = listOf(null, null, listOf("name"), listOf("name", "info"))
+        val assertDataArgsType = listOf(null, null, listOf("Str"), listOf("Str", "Int"))
+        val file = File(this::class.java.getResource("/functions/functions.xiao")!!.path)
+        val stringStream = StringStream(file)
+        val lex = Lexer(stringStream)
+        val parser = Parser(lex, file)
+        val (ast, reports) = parser.parser()
+
+        for (report in reports) {
+            report.printReport(file.readLines(), "/functions/functions.xiao")
+        }
+
+        ast.mapIndexed { index ,node ->
+            if (node is Function) {
+                val name = node.functionName.literal
+
+                assertEquals(assertDataName[index] , name)
+                node.parameters.mapIndexed { index2, parameter ->
+                    assertEquals(assertDataArgsName[index]?.get(index2), parameter.name.literal)
+                    assertEquals(assertDataArgsType[index]?.get(index2), parameter.type.typeTokens.literal)
+                }
             }
         }
     }
