@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            \[${{github.repository}}:${{steps.extract_branch.outputs.branch}}\]
+            \[${{github.repository}}:${{steps.extract_branch.outputs.branch}}]
             [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
             
             Repository: ${{ github.repository }}
@@ -53,4 +53,4 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             cloc: 
-            {{$(cloc src)}}
+            ${{$(cloc src)}}
