@@ -119,4 +119,12 @@ class ParserTest {
             }
         }
     }
+
+    /**
+     * The correctness of parse class
+     */
+    @Test
+    fun parserVarTest() {
+
+    }
 }
