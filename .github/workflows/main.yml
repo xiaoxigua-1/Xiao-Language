@@ -46,11 +46,11 @@ jobs:
             [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
             
             Repository: ${{ github.repository }}
-      - name: Telegram Notify cloc
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            cloc: 
-            ${{(cloc src)}}
+#       - name: Telegram Notify cloc
+#         uses: appleboy/telegram-action@master
+#         with:
+#           to: ${{ secrets.TELEGRAM_TO }}
+#           token: ${{ secrets.TELEGRAM_TOKEN }}
+#           message: |
+#             cloc: 
+#             ${{(cloc src)}}
