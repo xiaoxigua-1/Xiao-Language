@@ -1,12 +1,16 @@
 class A {}
+
 class B12 {}
+
 class ABC {
     fn test() {}
 }
+
 class AAC {
     fn test() {}
     fn test2() {}
 }
+
 class AAA {
     fn test(name: Str) {}
 }

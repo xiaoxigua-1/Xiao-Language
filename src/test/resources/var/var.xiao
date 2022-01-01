@@ -1,0 +1,5 @@
+var a = 12
+
+var b: Str = "ABC"
+
+var d: Int = a()
