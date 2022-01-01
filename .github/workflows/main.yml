@@ -30,6 +30,10 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - run: npm install cloc
       - name: Telegram Notify
         uses: appleboy/telegram-action@master
@@ -38,7 +42,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            [${{github.repository}}:${{env.BRANCH_NAME}}]
+            \[${{github.repository}}:${{steps.extract_branch.outputs.branch}}\]
             [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
             
             Repository: ${{ github.repository }}
@@ -48,4 +52,5 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
+            cloc: 
             {{$(cloc src)}}
