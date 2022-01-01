@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
+      - run: npm install cloc
       - name: Set outputs
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -37,7 +38,6 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
-      - run: npm install cloc
       - name: Telegram Notify
         uses: appleboy/telegram-action@master
         with:
