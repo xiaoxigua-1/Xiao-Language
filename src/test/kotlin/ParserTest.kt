@@ -143,7 +143,10 @@ class ParserTest {
                 assertEquals(expectedData[index].type, astNode.type?.typeTokens?.literal)
 
                 when (expression) {
-                    is Expression.CallFunctionExpression -> assertEquals(expectedData[index].value, expression.functionName.literal)
+                    is Expression.CallFunctionExpression -> assertEquals(
+                        expectedData[index].value,
+                        expression.functionName.literal
+                    )
                     is Expression.StringExpression -> assertEquals(expectedData[index].value, expression.value.literal)
                     is Expression.FloatExpression -> assertEquals(expectedData[index].value, expression.value.literal)
                     is Expression.IntExpression -> assertEquals(expectedData[index].value, expression.value.literal)

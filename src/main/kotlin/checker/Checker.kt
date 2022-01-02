@@ -2,7 +2,6 @@ package xiaoLanguage.checker
 
 import xiaoLanguage.ast.ASTNode
 import xiaoLanguage.ast.Import
-import xiaoLanguage.ast.Expression
 import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.util.Report
 import java.io.File

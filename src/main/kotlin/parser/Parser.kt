@@ -277,6 +277,7 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken && currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
             statements += statementsExpression()
         }
+
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
         return Function(
