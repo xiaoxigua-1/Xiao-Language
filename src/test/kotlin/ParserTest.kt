@@ -125,7 +125,7 @@ class ParserTest {
     }
 
     /**
-     * The correctness of parse class
+     * The correctness of parse variable
      */
     @Test
     fun parserVarTest() {
