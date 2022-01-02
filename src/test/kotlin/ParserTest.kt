@@ -1,7 +1,5 @@
-import xiaoLanguage.ast.ASTNode
-import xiaoLanguage.ast.Class
+import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
-import xiaoLanguage.ast.Import
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
 import xiaoLanguage.util.StringStream
@@ -22,6 +20,12 @@ class ParserTest {
         val parameter: List<String>? = null,
         val parameterType: List<String>? = null,
         val returnType: String? = null
+    )
+
+    data class ExpectedVariableData(
+        val name: String,
+        val value: String,
+        val type: String? = null
     )
 
     /**
@@ -125,6 +129,26 @@ class ParserTest {
      */
     @Test
     fun parserVarTest() {
+        val ast = parserTest("/var/var.xiao")
+        val expectedData = listOf(
+            ExpectedVariableData("a", "12"),
+            ExpectedVariableData("b", "ABC"),
+            ExpectedVariableData("d", "a")
+        )
 
+        ast.mapIndexed { index, astNode ->
+            if (astNode is Statement.VariableDeclaration) {
+                val expression = astNode.expression
+                assertEquals(expectedData[index].name, astNode.variableName.literal)
+
+                when (expression) {
+                    is Expression.CallFunctionExpression -> assertEquals(expectedData[index].value, expression.functionName.literal)
+                    is Expression.StringExpression -> assertEquals(expectedData[index].value, expression.value.literal)
+                    is Expression.FloatExpression -> assertEquals(expectedData[index].value, expression.value.literal)
+                    is Expression.IntExpression -> assertEquals(expectedData[index].value, expression.value.literal)
+                    else -> {}
+                }
+            }
+        }
     }
 }

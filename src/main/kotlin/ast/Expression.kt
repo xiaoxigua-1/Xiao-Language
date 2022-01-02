@@ -23,4 +23,19 @@ sealed class Expression : ASTNode {
         val variableName: Token,
         override val position: Position = variableName.position
     ) : Expression()
+
+    data class StringExpression(
+        val value: Token,
+        override val position: Position? = value.position
+    ) : Expression()
+
+    data class IntExpression(
+        val value: Token,
+        override val position: Position? = value.position
+    ) : Expression()
+
+    data class FloatExpression(
+        val value: Token,
+        override val position: Position? = value.position
+    ) : Expression()
 }

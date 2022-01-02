@@ -142,7 +142,14 @@ class Parser(lex: Lexer, private val file: File) {
                 return Expression.CallFunctionExpression(path, path[path.size - 1], args)
             }
 
-            else -> return Expression.VariableExpression(path, path[path.size - 1])
+            else -> {
+                return when (path[0].tokenType) {
+                    TokenType.INTEGER_LITERAL_TOKEN -> Expression.IntExpression(path[0])
+                    TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(path[0])
+                    TokenType.FLOAT_LITERAL_TOKEN -> Expression.FloatExpression(path[0])
+                    else -> Expression.VariableExpression(path, path[path.size - 1])
+                }
+            }
         }
     }
 
@@ -188,7 +195,7 @@ class Parser(lex: Lexer, private val file: File) {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
                     isDot = false
-                } else if (currently!!.position.lineNumber != lineNumber) break
+                } else break
             }
         }
 
@@ -408,9 +415,10 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             when (currently?.tokenType) {
                 TokenType.IDENTIFIER_TOKEN, TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN -> {
-                    if (expressions.size > 1 && operator == null) {
+                    if (expressions.size != 0 && operator == null) {
                         if (brackets) syntaxError(SyntaxError(), currently?.position)
-                        break
+                        if (expressions[0].position?.lineNumber != currently!!.position.lineNumber) break
+                        else syntaxError(SyntaxError(), currently?.position)
                     }
 
                     expressions += expression()
