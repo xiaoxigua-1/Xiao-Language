@@ -320,6 +320,11 @@ class Parser(lex: Lexer, private val file: File) {
         )
     }
 
+    /**
+     * parse if statement
+     * example "**if (...) {...}**"
+     * @return If statement data class
+     */
     private fun ifStatementExpression(): Statement.IfStatement {
         val ifStatementKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val statements = mutableListOf<Statement>()
@@ -364,6 +369,11 @@ class Parser(lex: Lexer, private val file: File) {
         )
     }
 
+    /**
+     * parse if statement
+     * example "**else (...) {...}**"
+     * @return If statement data class
+     */
     private fun elseStatementExpression(): Statement.ElseStatement {
         val elseKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val statements = mutableListOf<Statement>()
@@ -396,6 +406,11 @@ class Parser(lex: Lexer, private val file: File) {
         return Statement.ElseStatement(elseKeyword, ifKeyword, conditional, statements)
     }
 
+    /**
+     * parse return statement
+     * example "**return ...**"
+     * @return return statement data class
+     */
     private fun returnStatementExpression(): Statement.ReturnStatement {
         val returnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val expression = expression()
@@ -403,6 +418,11 @@ class Parser(lex: Lexer, private val file: File) {
         return Statement.ReturnStatement(returnKeyword, expression)
     }
 
+    /**
+     * parse operator
+     * example "**10 * 10**"
+     * @return operator data class
+     */
     private fun operatorExpression(): Expression {
         val expressions = mutableListOf<Expression>()
         var operator: Token? = null
@@ -450,6 +470,11 @@ class Parser(lex: Lexer, private val file: File) {
         }
     }
 
+    /**
+     * parse type
+     * example "**Int[]**"
+     * @return type data class
+     */
     private fun typeExpression(): Type {
         var isLeftSquareBrackets = true
         val typeToken = comparison(TokenType.IDENTIFIER_TOKEN)
