@@ -472,7 +472,7 @@ class Parser(lex: Lexer, private val file: File) {
 
     /**
      * parse type
-     * example "**Int[]**"
+     * example "**Int[]** or **Int**"
      * @return type data class
      */
     private fun typeExpression(): Type {
