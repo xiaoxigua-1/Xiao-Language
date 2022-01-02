@@ -24,9 +24,21 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-        
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: Telegram Notify
-        uses: appleboy/telegram-action@0.0.3
+        uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            \[${{github.repository}}:${{steps.extract_branch.outputs.branch}}]
+            [${{ steps.vars.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{github.sha}}) ${{ github.event.commits[0].message }} - ${{ github.actor }}
+            
+            Repository: ${{ github.repository }}
