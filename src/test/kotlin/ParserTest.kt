@@ -132,14 +132,15 @@ class ParserTest {
         val ast = parserTest("/var/var.xiao")
         val expectedData = listOf(
             ExpectedVariableData("a", "12"),
-            ExpectedVariableData("b", "ABC"),
-            ExpectedVariableData("d", "a")
+            ExpectedVariableData("b", "ABC", "Str"),
+            ExpectedVariableData("d", "a", "Int")
         )
 
         ast.mapIndexed { index, astNode ->
             if (astNode is Statement.VariableDeclaration) {
                 val expression = astNode.expression
                 assertEquals(expectedData[index].name, astNode.variableName.literal)
+                assertEquals(expectedData[index].type, astNode.type?.typeTokens?.literal)
 
                 when (expression) {
                     is Expression.CallFunctionExpression -> assertEquals(expectedData[index].value, expression.functionName.literal)
