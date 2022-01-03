@@ -2,10 +2,12 @@ import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
+import xiaoLanguage.util.Report
 import xiaoLanguage.util.StringStream
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class ParserTest {
     data class ExpectedClassData(
@@ -39,6 +41,7 @@ class ParserTest {
         val (ast, reports) = parser.parser()
 
         for (report in reports) {
+            if (report is Report.Error) ast.clear()
             report.printReport(file.readLines(), filePath)
         }
 
@@ -160,6 +163,6 @@ class ParserTest {
     fun parserIfStatementTest() {
         val ast = parserTest("/ifStatement/if.xiao")
 
-        println(ast)
+        assertNotEquals(0, ast.size)
     }
 }
