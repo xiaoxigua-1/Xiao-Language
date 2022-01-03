@@ -114,7 +114,12 @@ class Parser(lex: Lexer, private val file: File) {
      * @return expression data class
      */
     private fun valueExpress(): Expression {
-        val value = comparison(TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN, TokenType.IDENTIFIER_TOKEN)
+        val value = comparison(
+            TokenType.INTEGER_LITERAL_TOKEN,
+            TokenType.FLOAT_LITERAL_TOKEN,
+            TokenType.STRING_LITERAL_TOKEN,
+            TokenType.IDENTIFIER_TOKEN
+        )
 
         return when (value.tokenType) {
             TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(value)
@@ -166,11 +171,14 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             if (!isDot) {
                 isDot = true
-                val expression = expression()
-                when (expression) {
-                    is Expression.IntExpression, is Expression.FloatExpression, is Expression.StringExpression -> syntaxError(SyntaxError(), expression.position)
+
+                when (val expression = expression()) {
+                    is Expression.IntExpression, is Expression.FloatExpression, is Expression.StringExpression -> syntaxError(
+                        SyntaxError(),
+                        expression.position
+                    )
+                    else -> path += expression
                 }
-                path += expression
             } else {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
@@ -203,7 +211,10 @@ class Parser(lex: Lexer, private val file: File) {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
                     isDot = false
-                } else if (lineNumber == currently?.position?.lineNumber) syntaxError(SyntaxError(), currently?.position)
+                } else if (lineNumber == currently?.position?.lineNumber) syntaxError(
+                    SyntaxError(),
+                    currently?.position
+                )
                 else break
             }
         }
