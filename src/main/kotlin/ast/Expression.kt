@@ -7,7 +7,6 @@ sealed class Expression : ASTNode {
     abstract val position: Position?
 
     data class CallFunctionExpression(
-        val path: List<Token>,
         val functionName: Token,
         val args: List<Expression>,
         override val position: Position? = null

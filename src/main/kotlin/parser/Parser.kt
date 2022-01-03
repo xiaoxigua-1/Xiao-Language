@@ -106,50 +106,9 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     private fun expression(): Expression {
-        val path = if (currently?.tokenType == TokenType.IDENTIFIER_TOKEN) path()
-        else listOf(
-            comparison(
-                TokenType.STRING_LITERAL_TOKEN,
-                TokenType.FLOAT_LITERAL_TOKEN,
-                TokenType.INTEGER_LITERAL_TOKEN
-            )
-        )
-
-        when (currently?.tokenType) {
-            TokenType.LEFT_PARENTHESES_TOKEN -> {
-                comparison(TokenType.LEFT_PARENTHESES_TOKEN)
-                val args = mutableListOf<Expression>()
-                var isComma = false
-
-                while (!isEOFToken) {
-                    when (currently?.tokenType) {
-                        TokenType.RIGHT_PARENTHESES_TOKEN -> {
-                            comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
-                            break
-                        }
-                        TokenType.COMMA_TOKEN -> {
-                            if (!isComma) syntaxError(SyntaxError(), currently?.position)
-                            isComma = false
-                        }
-                        else -> {
-                            if (isComma) syntaxError(SyntaxError(), currently?.position)
-                            args += expression()
-                            isComma = true
-                        }
-                    }
-                }
-
-                return Expression.CallFunctionExpression(path, path[path.size - 1], args)
-            }
-
-            else -> {
-                return when (path[0].tokenType) {
-                    TokenType.INTEGER_LITERAL_TOKEN -> Expression.IntExpression(path[0])
-                    TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(path[0])
-                    TokenType.FLOAT_LITERAL_TOKEN -> Expression.FloatExpression(path[0])
-                    else -> Expression.VariableExpression(path, path[path.size - 1])
-                }
-            }
+        return when (tokens[index + 1].tokenType) {
+            TokenType.LEFT_PARENTHESES_TOKEN -> callFunction()
+            else -> operatorExpression()
         }
     }
 
@@ -171,7 +130,7 @@ class Parser(lex: Lexer, private val file: File) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
             Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
             Keyword.RETURN_KEYWORD.keyword -> returnStatementExpression()
-            else -> Statement.ExpressionStatement(expression())
+            else -> Statement.ExpressionStatement(path())
         }
     }
 
@@ -180,9 +139,9 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**a.b.c**" or Int or String or Float
      * @return Token list
      */
-    private fun path(): List<Token> {
+    private fun path(): List<Expression> {
         val lineNumber = currently?.position?.lineNumber
-        val path = mutableListOf<Token>()
+        val path = mutableListOf<Expression>()
         var isDot = false
 
         if (lineNumber == null) syntaxError(SyntaxError(), tokens[index - 1].position)
@@ -190,7 +149,7 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             if (!isDot) {
                 isDot = true
-                path += comparison(TokenType.IDENTIFIER_TOKEN)
+                path += expression()
             } else {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
@@ -211,8 +170,26 @@ class Parser(lex: Lexer, private val file: File) {
      */
     private fun importExpression(): Import {
         val importKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val lineNumber = importKeyword.position.lineNumber
+        val path = mutableListOf<Token>()
+        var isDot = false
 
-        return Import(importKeyword, path())
+        while (!isEOFToken) {
+            if (!isDot) {
+                path += comparison(TokenType.IDENTIFIER_TOKEN)
+                isDot = true
+            } else {
+                if (currently?.tokenType == TokenType.DOT_TOKEN) {
+                    comparison(TokenType.DOT_TOKEN)
+                    isDot = false
+                } else if (lineNumber == currently?.position?.lineNumber) syntaxError(SyntaxError(), currently?.position)
+                else break
+            }
+        }
+
+        if (!isDot) syntaxError(SyntaxError(), currently?.position)
+
+        return Import(importKeyword, path)
     }
 
     /**
@@ -430,6 +407,38 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     /**
+     * parse call function
+     * example "**test()**"
+     * @return return statement data class
+     */
+    private fun callFunction(): Expression.CallFunctionExpression {
+        val functionName = comparison(TokenType.IDENTIFIER_TOKEN)
+        val args = mutableListOf<Expression>()
+        var isComma = false
+
+        comparison(TokenType.LEFT_PARENTHESES_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_PARENTHESES_TOKEN -> {
+                    comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
+                    break
+                }
+                TokenType.COMMA_TOKEN -> {
+                    if (!isComma) syntaxError(SyntaxError(), currently?.position)
+                    isComma = false
+                }
+                else -> {
+                    if (isComma) syntaxError(SyntaxError(), currently?.position)
+                    args += expression()
+                    isComma = true
+                }
+            }
+        }
+        return Expression.CallFunctionExpression(functionName, args)
+    }
+
+    /**
      * parse operator
      * example "**10 * 10**"
      * @return operator data class
@@ -487,6 +496,10 @@ class Parser(lex: Lexer, private val file: File) {
 
         return when (operator?.tokenType) {
             TokenType.PLUS_TOKEN -> Expression.OperatorExpression(Operator.Plus(operator, expressions))
+            TokenType.MULTIPLY_TOKEN -> Expression.OperatorExpression(Operator.Multiplied(operator, expressions))
+            TokenType.MINUS_TOKEN -> Expression.OperatorExpression(Operator.Minus(operator, expressions))
+            TokenType.LESS_TOKEN -> Expression.OperatorExpression(Operator.Less(operator, expressions))
+            TokenType.MORE_TOKEN -> Expression.OperatorExpression(Operator.More(operator, expressions))
             else -> expressions[0]
         }
     }

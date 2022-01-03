@@ -159,10 +159,27 @@ class ParserTest {
         }
     }
 
+    /**
+     * The correctness of parse if statement
+     */
     @Test
     fun parserIfStatementTest() {
         val ast = parserTest("/ifStatement/if.xiao")
 
         assertNotEquals(0, ast.size)
+    }
+
+    /**
+     * The correctness of parse operator
+     */
+    @Test
+    fun parserOperatorTest() {
+        val ast = parserTest("/operators/operator.xiao")
+        println(ast)
+//        ast.mapIndexed { _, astNode ->
+//            if (astNode is Operator) {
+//
+//            }
+//        }
     }
 }

@@ -181,11 +181,7 @@ class Lexer(private val stringStream: StringStream) {
                 else -> {
                     stringStream.backChar()
                     index--
-                    return Token(
-                        str,
-                        Position(lineNumber, start, index),
-                        if (isFloat) TokenType.FLOAT_LITERAL_TOKEN else TokenType.INTEGER_LITERAL_TOKEN
-                    )
+                    break
                 }
             }
 
@@ -193,7 +189,11 @@ class Lexer(private val stringStream: StringStream) {
             stringStream.nextChar()
         }
 
-        throw SyntaxError()
+        return Token(
+            str,
+            Position(lineNumber, start, index),
+            if (isFloat) TokenType.FLOAT_LITERAL_TOKEN else TokenType.INTEGER_LITERAL_TOKEN
+        )
     }
 
     private fun slash(): Token? {
