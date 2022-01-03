@@ -50,22 +50,6 @@ class Parser(lex: Lexer, private val file: File) {
     private val currently: Token?
         get() = if (isEOFToken) null else tokens[index]
 
-    private fun comparison(token: TokenType): Token = when {
-        currently?.tokenType == token -> tokens[index++]
-        tokens.isEmpty() -> {
-            throw Exception()
-        }
-        else -> {
-            syntaxError(
-                SyntaxError(
-                    "Unexpected token ${currently?.tokenType}, expected token $token"
-                ), currently?.position
-            )
-
-            throw Exception()
-        }
-    }
-
     private fun comparison(vararg token: TokenType): Token = when {
         currently?.tokenType in token -> tokens[index++]
         tokens.isEmpty() -> {
@@ -105,10 +89,28 @@ class Parser(lex: Lexer, private val file: File) {
         return nodes
     }
 
-    private fun expression(): Expression {
-        return when (tokens[index + 1].tokenType) {
+    private fun expression(isValue: Boolean = false): Expression {
+        val value = comparison(TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN, TokenType.IDENTIFIER_TOKEN)
+
+        return when (currently?.tokenType) {
             TokenType.LEFT_PARENTHESES_TOKEN -> callFunction()
-            else -> operatorExpression()
+            TokenType.MINUS_TOKEN,
+            TokenType.MULTIPLY_TOKEN,
+            TokenType.PLUS_TOKEN,
+            TokenType.SLASH_TOKEN,
+            TokenType.MORE_TOKEN,
+            TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress(value)
+            else -> valueExpress(value)
+        }
+    }
+
+    private fun valueExpress(value: Token): Expression {
+
+        return when (value.tokenType) {
+            TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(value)
+            TokenType.FLOAT_LITERAL_TOKEN -> Expression.FloatExpression(value)
+            TokenType.INTEGER_LITERAL_TOKEN -> Expression.IntExpression(value)
+            else -> Expression.VariableExpression(value)
         }
     }
 
@@ -462,7 +464,7 @@ class Parser(lex: Lexer, private val file: File) {
                         else syntaxError(SyntaxError(), currently?.position)
                     }
 
-                    expressions += expression()
+                    expressions += expression(true)
                 }
                 TokenType.LEFT_PARENTHESES_TOKEN -> operatorExpression()
                 TokenType.RIGHT_PARENTHESES_TOKEN -> {

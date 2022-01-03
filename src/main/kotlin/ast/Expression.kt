@@ -18,9 +18,8 @@ sealed class Expression : ASTNode {
     ) : Expression()
 
     data class VariableExpression(
-        val path: List<Token>,
-        val variableName: Token,
-        override val position: Position = variableName.position
+        val value: Token,
+        override val position: Position = value.position
     ) : Expression()
 
     data class StringExpression(
