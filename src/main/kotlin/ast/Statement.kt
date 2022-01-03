@@ -16,7 +16,7 @@ sealed class Statement : ASTNode {
     ): Statement()
 
     data class ExpressionStatement(
-        val expression: List<Expression>?,
+        val expression: List<Expression>,
         override val position: Position? = null
     ) : Statement()
 

@@ -13,7 +13,7 @@ sealed class Expression : ASTNode {
     ) : Expression()
 
     data class OperatorExpression(
-        val operators: Operator,
+        val operator: Operator,
         override val position: Position? = null
     ) : Expression()
 

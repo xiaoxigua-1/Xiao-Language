@@ -89,22 +89,32 @@ class Parser(lex: Lexer, private val file: File) {
         return nodes
     }
 
+    /**
+     * parse expressions
+     * example all expression
+     * @return expression data class
+     */
     private fun expression(isValue: Boolean = false): Expression {
-        val value = comparison(TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN, TokenType.IDENTIFIER_TOKEN)
-
-        return when (currently?.tokenType) {
+        if (tokens.size < index + 2) return valueExpress()
+        return when (tokens[index + 1].tokenType) {
             TokenType.LEFT_PARENTHESES_TOKEN -> callFunction()
             TokenType.MINUS_TOKEN,
             TokenType.MULTIPLY_TOKEN,
             TokenType.PLUS_TOKEN,
             TokenType.SLASH_TOKEN,
             TokenType.MORE_TOKEN,
-            TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress(value)
-            else -> valueExpress(value)
+            TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress()
+            else -> valueExpress()
         }
     }
 
-    private fun valueExpress(value: Token): Expression {
+    /**
+     * parse value
+     * example string or int or float
+     * @return expression data class
+     */
+    private fun valueExpress(): Expression {
+        val value = comparison(TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN, TokenType.IDENTIFIER_TOKEN)
 
         return when (value.tokenType) {
             TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(value)
@@ -127,6 +137,11 @@ class Parser(lex: Lexer, private val file: File) {
         return Parameter(name, colon, type)
     }
 
+    /**
+     * parse statements
+     * var or if or return or expression
+     * @return statements data class
+     */
     private fun statementsExpression(): Statement {
         return when (currently?.literal) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
@@ -138,7 +153,7 @@ class Parser(lex: Lexer, private val file: File) {
 
     /**
      * parse path or value
-     * example "**a.b.c**" or Int or String or Float
+     * example "**a.b().c()**"
      * @return Token list
      */
     private fun path(): List<Expression> {
@@ -151,7 +166,11 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             if (!isDot) {
                 isDot = true
-                path += expression()
+                val expression = expression()
+                when (expression) {
+                    is Expression.IntExpression, is Expression.FloatExpression, is Expression.StringExpression -> syntaxError(SyntaxError(), expression.position)
+                }
+                path += expression
             } else {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)
@@ -288,7 +307,7 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.EQUAL_TOKEN)
 
-        val value = operatorExpression()
+        val value = expression()
 
         return Statement.VariableDeclaration(
             variableKeyword,
@@ -445,10 +464,12 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**10 * 10**"
      * @return operator data class
      */
-    private fun operatorExpression(): Expression {
+    private fun operatorExpression(expression: Expression? = null): Expression {
         val expressions = mutableListOf<Expression>()
         var operator: Token? = null
         var brackets = false
+
+        if (expression != null) expressions += expression
 
         if (currently?.tokenType == TokenType.LEFT_PARENTHESES_TOKEN) {
             comparison(TokenType.LEFT_PARENTHESES_TOKEN)
@@ -466,7 +487,7 @@ class Parser(lex: Lexer, private val file: File) {
 
                     expressions += expression(true)
                 }
-                TokenType.LEFT_PARENTHESES_TOKEN -> operatorExpression()
+                TokenType.LEFT_PARENTHESES_TOKEN -> expressions += operatorExpression()
                 TokenType.RIGHT_PARENTHESES_TOKEN -> {
                     if (brackets) {
                         comparison(TokenType.RIGHT_PARENTHESES_TOKEN)

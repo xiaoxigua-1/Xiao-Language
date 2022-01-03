@@ -30,6 +30,11 @@ class ParserTest {
         val type: String? = null
     )
 
+    data class ExpectedOperatorData(
+        val expressions: List<String>,
+        val operator: String
+    )
+
     /**
      * parse to Abstract Syntax Tree
      */
@@ -175,11 +180,20 @@ class ParserTest {
     @Test
     fun parserOperatorTest() {
         val ast = parserTest("/operators/operator.xiao")
-        println(ast)
-//        ast.mapIndexed { _, astNode ->
-//            if (astNode is Operator) {
-//
-//            }
-//        }
+        val expectedData = listOf(
+            ExpectedOperatorData(listOf("10", "20"), "+"),
+
+        )
+
+        ast.mapIndexed { index, astNode ->
+            astNode as Statement.ExpressionStatement
+            val operator = (astNode.expression[0] as Expression.OperatorExpression).operator
+
+            if (operator is Operator.Plus) {
+                assertEquals(expectedData[index].operator, operator.operator.literal)
+
+                println(operator.expressions)
+            }
+        }
     }
 }
