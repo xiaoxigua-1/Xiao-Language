@@ -328,8 +328,9 @@ class Parser(lex: Lexer, private val file: File) {
     private fun ifStatementExpression(): Statement.IfStatement {
         val ifStatementKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val statements = mutableListOf<Statement>()
-        val elseStatement = mutableListOf<Statement.ElseStatement>()
+        val elseStatements = mutableListOf<Statement.ElseStatement>()
         var conditional: Expression? = null
+        var isElse = false
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
 
         while (!isEOFToken) {
@@ -353,7 +354,11 @@ class Parser(lex: Lexer, private val file: File) {
             when (currently?.tokenType) {
                 TokenType.IDENTIFIER_TOKEN -> {
                     if (currently?.literal == Keyword.ELSE_KEYWORD.keyword) {
-                        elseStatement += elseStatementExpression()
+                        val elseKeyword = currently
+                        val elseStatement = elseStatementExpression()
+                        if (isElse) syntaxError(SyntaxError(), elseKeyword?.position)
+                        isElse = elseStatement.conditional == null
+                        elseStatements += elseStatement
                     } else break
                 }
                 else -> break
@@ -364,7 +369,7 @@ class Parser(lex: Lexer, private val file: File) {
             ifStatementKeyword,
             conditional,
             statements,
-            elseStatement,
+            elseStatements,
             ifStatementKeyword.position
         )
     }
