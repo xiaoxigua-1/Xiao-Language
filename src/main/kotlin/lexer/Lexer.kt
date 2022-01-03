@@ -69,6 +69,12 @@ class Lexer(private val stringStream: StringStream) {
                 Tokens.COMMA_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.COMMA_TOKEN
                 )
+                Tokens.LESS_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.LESS_TOKEN
+                )
+                Tokens.MORE_TOKEN.token -> tokens += Token(
+                    stringStream.currently, Position(lineNumber, index), TokenType.MORE_TOKEN
+                )
                 Tokens.EQUAL_TOKEN.token -> tokens += equal()
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> tokens += string()
                 Tokens.SLASH_TOKEN.token -> {
@@ -172,7 +178,7 @@ class Lexer(private val stringStream: StringStream) {
                     if (stringStream.currently == Tokens.DOT_TOKEN.token) isFloat = true
                     str += stringStream.currently
                 }
-                in Tokens.values().map { it.token }, "\n", "\r" -> {
+                else -> {
                     stringStream.backChar()
                     index--
                     return Token(
@@ -181,7 +187,6 @@ class Lexer(private val stringStream: StringStream) {
                         if (isFloat) TokenType.FLOAT_LITERAL_TOKEN else TokenType.INTEGER_LITERAL_TOKEN
                     )
                 }
-                else -> break
             }
 
             index++

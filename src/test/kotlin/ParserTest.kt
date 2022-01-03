@@ -157,7 +157,9 @@ class ParserTest {
     }
 
     @Test
-    fun parserIfTest() {
+    fun parserIfStatementTest() {
+        val ast = parserTest("/ifStatement/if.xiao")
 
+        println(ast)
     }
 }

@@ -331,6 +331,7 @@ class Parser(lex: Lexer, private val file: File) {
         val elseStatements = mutableListOf<Statement.ElseStatement>()
         var conditional: Expression? = null
         var isElse = false
+
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
 
         while (!isEOFToken) {
@@ -340,6 +341,7 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
+        comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
 
         while (!isEOFToken) {
@@ -348,6 +350,7 @@ class Parser(lex: Lexer, private val file: File) {
                 else -> statements += statementsExpression()
             }
         }
+
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
         while (!isEOFToken) {
@@ -357,7 +360,7 @@ class Parser(lex: Lexer, private val file: File) {
                         val elseKeyword = currently
                         val elseStatement = elseStatementExpression()
                         if (isElse) syntaxError(SyntaxError(), elseKeyword?.position)
-                        isElse = elseStatement.conditional == null
+                        isElse = elseStatement.ifKeyword == null
                         elseStatements += elseStatement
                     } else break
                 }
@@ -396,6 +399,7 @@ class Parser(lex: Lexer, private val file: File) {
                         else -> conditional = expression()
                     }
                 }
+                comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
             } else syntaxError(SyntaxError(), currently?.position)
         }
 
@@ -407,6 +411,8 @@ class Parser(lex: Lexer, private val file: File) {
                 else -> statements += statementsExpression()
             }
         }
+
+        comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
         return Statement.ElseStatement(elseKeyword, ifKeyword, conditional, statements)
     }
@@ -454,17 +460,27 @@ class Parser(lex: Lexer, private val file: File) {
                     if (brackets) {
                         comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
                         break
-                    } else syntaxError(SyntaxError(), currently?.position)
+                    } else break
                 }
                 else -> {
                     if (currently?.tokenType !in listOf(
                             TokenType.MINUS_TOKEN,
                             TokenType.MULTIPLY_TOKEN,
                             TokenType.PLUS_TOKEN,
-                            TokenType.SLASH_TOKEN
+                            TokenType.SLASH_TOKEN,
+                            TokenType.MORE_TOKEN,
+                            TokenType.LESS_TOKEN
                         )
                     ) break
-                    operator = currently
+
+                    operator = comparison(
+                        TokenType.MINUS_TOKEN,
+                        TokenType.MULTIPLY_TOKEN,
+                        TokenType.PLUS_TOKEN,
+                        TokenType.SLASH_TOKEN,
+                        TokenType.MORE_TOKEN,
+                        TokenType.LESS_TOKEN
+                    )
                 }
             }
         }

@@ -20,5 +20,7 @@ enum class TokenType {
     EQUAL_TOKEN,
     DOT_TOKEN,
     DOUBLE_EQUAL_TOKEN,
-    EOF
+    EOF,
+    LESS_TOKEN,
+    MORE_TOKEN
 }
