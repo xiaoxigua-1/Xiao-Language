@@ -306,6 +306,10 @@ class Parser(lex: Lexer, private val file: File) {
      */
     private fun variableDeclarationExpression(): Statement.VariableDeclaration {
         val variableKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val mutKeyword: Token? =
+            if (currently?.tokenType == TokenType.IDENTIFIER_TOKEN && currently?.literal == Keyword.MUT_KEYWORD.keyword) comparison(
+                TokenType.IDENTIFIER_TOKEN
+            ) else null
         val variableName = comparison(TokenType.IDENTIFIER_TOKEN)
         var colon: Token? = null
 
@@ -322,6 +326,7 @@ class Parser(lex: Lexer, private val file: File) {
 
         return Statement.VariableDeclaration(
             variableKeyword,
+            mutKeyword,
             variableName,
             colon,
             variableType,

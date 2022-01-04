@@ -8,6 +8,7 @@ sealed class Statement : ASTNode {
 
     data class VariableDeclaration(
         val variableKeyword: Token,
+        val mutKeyword: Token? = null,
         val variableName: Token,
         val colon: Token?,
         val type: Type?,
