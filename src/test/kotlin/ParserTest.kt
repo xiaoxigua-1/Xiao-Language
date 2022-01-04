@@ -203,7 +203,8 @@ class ParserTest {
 
         val ast = parserTest("/operators/operator.xiao")
         val expectedData = listOf(
-            ExpectedOperatorData(listOf("10", "20", "30", "50"), listOf("+", "+", "+"))
+            ExpectedOperatorData(listOf("10", "20", "30", "50"), listOf("+", "+", "+")),
+            ExpectedOperatorData(listOf("10", "50", "20", "50"), listOf("/", ">", "<"))
         )
 
         ast.mapIndexed { index, astNode ->
@@ -241,6 +242,28 @@ class ParserTest {
                 } else if (expression is Expression.VariableExpression) {
                     assertEquals(expectedData[index].names[index2], expression.value.literal)
                 }
+            }
+        }
+    }
+
+    /**
+     * The correctness of parse return statement
+     */
+    @Test
+    fun parserReturnStatementTest() {
+        val ast = parserTest("/returnStatement/return.xiao")
+        val expectedData = listOf("100", "abc", "A", "a", "a")
+
+        ast.mapIndexed { index, astNode ->
+            astNode as Statement.ReturnStatement
+
+            when (val expression = astNode.expression) {
+                is Expression.CallFunctionExpression -> assertEquals(expectedData[index], expression.functionName.literal)
+                is Expression.VariableExpression -> assertEquals(expectedData[index], expression.value.literal)
+                is Expression.IntExpression -> assertEquals(expectedData[index], expression.value.literal)
+                is Expression.FloatExpression -> assertEquals(expectedData[index], expression.value.literal)
+                is Expression.StringExpression -> assertEquals(expectedData[index], expression.value.literal)
+                else -> {}
             }
         }
     }

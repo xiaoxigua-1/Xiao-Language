@@ -427,6 +427,16 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     /**
+     * parse for statement
+     * example "**for(...){...}**"
+     * @return for statement data class
+     */
+    fun forStatementExpression() {
+        val forKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+
+    }
+
+    /**
      * parse return statement
      * example "**return ...**"
      * @return return statement data class
