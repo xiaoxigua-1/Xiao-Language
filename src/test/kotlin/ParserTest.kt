@@ -35,6 +35,10 @@ class ParserTest {
         val operator: String
     )
 
+    data class ExpectedPathData(
+        val names: List<String>
+    )
+
     /**
      * parse to Abstract Syntax Tree
      */
@@ -183,7 +187,7 @@ class ParserTest {
         val expectedData = listOf(
             ExpectedOperatorData(listOf("10", "20"), "+"),
 
-        )
+            )
 
         ast.mapIndexed { index, astNode ->
             astNode as Statement.ExpressionStatement
@@ -193,6 +197,34 @@ class ParserTest {
                 assertEquals(expectedData[index].operator, operator.operator.literal)
 
                 println(operator.expressions)
+            }
+        }
+    }
+
+    /**
+     * The correctness of parse path
+     */
+    @Test
+    fun parserPathTest() {
+        val ast = parserTest("/path/path.xiao")
+        val expectedData = listOf(
+            ExpectedPathData(
+                listOf("test", "test2", "test")
+            ),
+            ExpectedPathData(
+                listOf("test", "test5", "test")
+            )
+        )
+
+        ast.mapIndexed { index, astNode ->
+            astNode as Statement.ExpressionStatement
+
+            astNode.expression.mapIndexed { index2, expression ->
+                if (expression is Expression.CallFunctionExpression) {
+                    assertEquals(expectedData[index].names[index2], expression.functionName.literal)
+                } else if (expression is Expression.VariableExpression) {
+                    assertEquals(expectedData[index].names[index2], expression.value.literal)
+                }
             }
         }
     }
