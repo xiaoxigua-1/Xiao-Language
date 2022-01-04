@@ -32,7 +32,7 @@ class ParserTest {
 
     data class ExpectedOperatorData(
         val expressions: List<String>,
-        val operator: String
+        val operator: List<String>
     )
 
     data class ExpectedPathData(
@@ -183,20 +183,36 @@ class ParserTest {
      */
     @Test
     fun parserOperatorTest() {
+        fun getString(expressions: List<Expression>, operatorList: List<String>, index: Int): List<String> {
+            val strings = mutableListOf<String>()
+            expressions.map { expression ->
+                when (expression) {
+                    is Expression.IntExpression -> strings += expression.value.literal
+                    is Expression.FloatExpression -> strings += expression.value.literal
+                    is Expression.StringExpression -> strings += expression.value.literal
+                    is Expression.OperatorExpression -> {
+                        assertEquals(operatorList[index + 1], expression.operator.operator.literal)
+                        getString(expression.operator.expressions, operatorList, index + 1).map { strings += it }
+                    }
+                    else -> {}
+                }
+            }
+
+            return strings
+        }
+
         val ast = parserTest("/operators/operator.xiao")
         val expectedData = listOf(
-            ExpectedOperatorData(listOf("10", "20"), "+"),
-
-            )
+            ExpectedOperatorData(listOf("10", "20", "30", "50"), listOf("+", "+", "+"))
+        )
 
         ast.mapIndexed { index, astNode ->
             astNode as Statement.ExpressionStatement
             val operator = (astNode.expression[0] as Expression.OperatorExpression).operator
 
             if (operator is Operator.Plus) {
-                assertEquals(expectedData[index].operator, operator.operator.literal)
-
-                println(operator.expressions)
+                assertEquals(expectedData[index].operator[0], operator.operator.literal)
+                getString(operator.expressions, expectedData[index].operator, 0)
             }
         }
     }
