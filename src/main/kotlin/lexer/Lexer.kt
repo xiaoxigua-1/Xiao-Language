@@ -86,7 +86,7 @@ class Lexer(private val stringStream: StringStream) {
 
                     stringStream.nextChar()
                     tokens += when (stringStream.currently) {
-                        Tokens.LESS_TOKEN.token -> {
+                        Tokens.MORE_TOKEN.token -> {
                             minusStr += stringStream.currently
                             Token(
                                 minusStr, Position(lineNumber, index - 1, index), TokenType.ARROW_TOKEN
@@ -177,7 +177,14 @@ class Lexer(private val stringStream: StringStream) {
         when (stringStream.currently) {
             Tokens.DOT_TOKEN.token -> {
                 stringStream.nextChar()
-                if (stringStream.currently in ("0".."9")) {
+                if (stringStream.isEOF) {
+                    stringStream.backChar()
+                    return Token(
+                        stringStream.currently,
+                        Position(lineNumber, start, start),
+                        TokenType.DOT_TOKEN
+                    )
+                } else if (stringStream.currently in ("0".."9")) {
                     str = "."
                     isFloat = true
                     index++
