@@ -258,7 +258,10 @@ class ParserTest {
             astNode as Statement.ReturnStatement
 
             when (val expression = astNode.expression) {
-                is Expression.CallFunctionExpression -> assertEquals(expectedData[index], expression.functionName.literal)
+                is Expression.CallFunctionExpression -> assertEquals(
+                    expectedData[index],
+                    expression.functionName.literal
+                )
                 is Expression.VariableExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.IntExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.FloatExpression -> assertEquals(expectedData[index], expression.value.literal)

@@ -33,7 +33,7 @@ sealed class Statement : ASTNode {
         val conditional: Expression?,
         val statements: List<Statement>,
         val elseStatement: List<ElseStatement>,
-        override val position: Position?
+        override val position: Position? = ifKeyword.position
     ) : Statement()
 
     data class ElseStatement(
@@ -42,4 +42,13 @@ sealed class Statement : ASTNode {
         val conditional: Expression?,
         val statements: List<Statement>
     )
+
+    data class ForStatement(
+        val forKeyword: Token,
+        val variable: Token,
+        val inKeyword: Token,
+        val expression: Expression,
+        val statements: List<Statement>,
+        override val position: Position? = forKeyword.position
+    ) : Statement()
 }

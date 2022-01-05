@@ -152,6 +152,7 @@ class Parser(lex: Lexer, private val file: File) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
             Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
             Keyword.RETURN_KEYWORD.keyword -> returnStatementExpression()
+            Keyword.FOR_KEYWORD.keyword -> forStatementExpression()
             else -> Statement.ExpressionStatement(path())
         }
     }
@@ -436,9 +437,32 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**for(...){...}**"
      * @return for statement data class
      */
-    fun forStatementExpression() {
+    private fun forStatementExpression(): Statement.ForStatement {
         val forKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
 
+        comparison(TokenType.LEFT_PARENTHESES_TOKEN)
+
+        val variable = comparison(TokenType.IDENTIFIER_TOKEN)
+        val inKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val expression = expression()
+        val statements = mutableListOf<Statement>()
+
+        if (inKeyword.literal != Keyword.IN_KEYWORD.keyword) syntaxError(SyntaxError(), inKeyword.position)
+
+        comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
+        comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_CURLY_BRACKETS_TOKEN -> {
+                    comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
+                    break
+                }
+                else -> statements += statementsExpression()
+            }
+        }
+
+        return Statement.ForStatement(forKeyword, variable, inKeyword, expression, statements)
     }
 
     /**
@@ -485,6 +509,7 @@ class Parser(lex: Lexer, private val file: File) {
         return Expression.CallFunctionExpression(functionName, args)
     }
 
+    //TODO bug: operator precedence
     /**
      * parse operator
      * example "**10 * 10**"

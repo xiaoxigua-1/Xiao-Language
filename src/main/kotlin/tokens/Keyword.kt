@@ -14,5 +14,6 @@ enum class Keyword(val keyword: String) {
     PRIVATE_KEYWORD("private"),
     IMPORT_KEYWORD("im"),
     RETURN_KEYWORD("return"),
-    MUT_KEYWORD("mut")
+    MUT_KEYWORD("mut"),
+    IN_KEYWORD("in")
 }
