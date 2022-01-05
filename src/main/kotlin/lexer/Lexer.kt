@@ -60,9 +60,6 @@ class Lexer(private val stringStream: StringStream) {
                 Tokens.PLUS_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.PLUS_TOKEN
                 )
-                Tokens.MINUS_TOKEN.token -> tokens += Token(
-                    stringStream.currently, Position(lineNumber, index), TokenType.MINUS_TOKEN
-                )
                 Tokens.COLON_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.COLON_TOKEN
                 )
@@ -75,12 +72,36 @@ class Lexer(private val stringStream: StringStream) {
                 Tokens.MORE_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.MORE_TOKEN
                 )
+
                 Tokens.EQUAL_TOKEN.token -> tokens += equal()
                 Tokens.DOUBLE_QUOTES_TOKEN.token, Tokens.SINGLE_QUOTES_TOKEN.token -> tokens += string()
+
                 Tokens.SLASH_TOKEN.token -> {
                     val token = slash()
                     if (token != null) tokens += token
                 }
+
+                Tokens.MINUS_TOKEN.token -> {
+                    var minusStr = stringStream.currently
+
+                    stringStream.nextChar()
+                    tokens += when (stringStream.currently) {
+                        Tokens.LESS_TOKEN.token -> {
+                            minusStr += stringStream.currently
+                            Token(
+                                minusStr, Position(lineNumber, index - 1, index), TokenType.ARROW_TOKEN
+                            )
+                        }
+                        else -> {
+                            stringStream.backChar()
+
+                            Token(
+                                stringStream.currently, Position(lineNumber, index), TokenType.MINUS_TOKEN
+                            )
+                        }
+                    }
+                }
+
                 in ("0".."9"), Tokens.DOT_TOKEN.token -> {
                     if (str.isEmpty()) {
                         tokens += number()
