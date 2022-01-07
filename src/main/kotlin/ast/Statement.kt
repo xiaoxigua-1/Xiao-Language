@@ -13,6 +13,7 @@ sealed class Statement : ASTNode {
         val colon: Token?,
         val type: Type?,
         val expression: Expression?,
+        var findId: Int? = null,
         override val position: Position = variableName.position
     ): Statement()
 
