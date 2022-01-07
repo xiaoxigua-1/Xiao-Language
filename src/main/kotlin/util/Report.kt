@@ -4,11 +4,26 @@ import xiaoLanguage.tokens.Position
 
 sealed class Report {
     abstract val exception: Exception
-    abstract val position: Position?
+    abstract val start: Position?
+    abstract val end: Position?
 
-    data class Error(override val exception: Exception, override val position: Position? = null) : Report()
-    data class Warning(override val exception: Exception, override val position: Position? = null) : Report()
-    data class Debug(override val exception: Exception, override val position: Position? = null) : Report()
+    data class Error(
+        override val exception: Exception,
+        override val start: Position? = null,
+        override val end: Position? = null
+    ) : Report()
+
+    data class Warning(
+        override val exception: Exception,
+        override val start: Position? = null,
+        override val end: Position? = null
+    ) : Report()
+
+    data class Debug(
+        override val exception: Exception,
+        override val start: Position? = null,
+        override val end: Position? = null
+    ) : Report()
 
     enum class Color(val asciiColor: String) {
         Error("\u001b[31m"),
@@ -20,16 +35,19 @@ sealed class Report {
     fun printReport(source: List<String>, path: String) {
         val exceptionName = exception::class.java.simpleName
         val level = this::class.java.simpleName
-        var outputText = ""
 
-        outputText = if (position != null) {
-            val code = source[position!!.lineNumber].trimIndent()
-            val arrow = source[position!!.lineNumber].length - code.length
+        val outputText = if (start != null) {
+            val code = source[start!!.lineNumber].trimIndent()
+            val arrow = source[start!!.lineNumber].length - code.length
+            val arrowNumber = if (end == null) 0 else {
+                if (start != null) end!!.end - start!!.start
+                else 0
+            }
 
             """
-            |File "$path", ${position!!.lineNumber + 1} line
+            |File "$path", ${start!!.lineNumber + 1} line
             |  > $code
-            |  ${(0..position!!.start + 1 - arrow).joinToString("") { " " }}^
+            |  ${(0..start!!.start + 1 - arrow).joinToString("") { " " }}${(0..arrowNumber).joinToString("") { "^" }}
             |${Color.valueOf(level).asciiColor}$exceptionName: ${exception.message} ${Color.End.asciiColor}
             |
             """.trimMargin()
