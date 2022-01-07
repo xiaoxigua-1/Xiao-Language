@@ -12,7 +12,7 @@ class CheckTest {
 
     @Test
     fun variableFindIdTest() {
-        val structure = checkTest("/parserTestData/var/var.xiao")
+        val structure = checkTest("/checkerTestData/all.xiao")
         val varFileAST = structure["parserTestData/var"]
 
         varFileAST?.forEach {

@@ -38,7 +38,6 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkImport(node: Import) {
-        var file: File? = null
         val path = when (node.path[0].literal) {
             "xiao" -> {
                 ""
@@ -47,18 +46,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 node.path.joinToString("/") { it.literal }
             }
         }
+        val file = File("${mainFile.absoluteFile.parent}/$path.xiao")
 
-        try {
-            file = File("${mainFile.absoluteFile.parent}/$path.xiao")
-        } catch (error: Exception) {
-            checkerReport += Report.Error(
-                ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
-                node.importKeyword.position
-            )
-        }
-
-        if (file != null)
-            asts[path] = Compiler(file).compile()[file.nameWithoutExtension]!!
+        if (!file.exists()) checkerReport += Report.Error(
+            ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
+            node.path[0].position,
+            node.path[node.path.size - 1].position
+        )
+        else asts[path] = Compiler(file).compile()[file.nameWithoutExtension]!!
     }
 
     private fun checkFunction(node: Function): Function {
@@ -88,6 +83,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         } else {
             checkerReport += Report.Error(
                 SyntaxError("Identifier '${node.variableName.literal}' has already been declared"),
+                node.position,
                 node.position
             )
         }

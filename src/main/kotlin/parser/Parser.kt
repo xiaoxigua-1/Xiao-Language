@@ -28,6 +28,7 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     fun parser(): Pair<MutableList<ASTNode>, MutableList<Report>> {
+        println(tokens)
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
                 ast = expressions { true }
@@ -206,6 +207,10 @@ class Parser(lex: Lexer, private val file: File) {
 
         while (!isEOFToken) {
             if (!isDot) {
+                if (currently?.position?.lineNumber != lineNumber) syntaxError(
+                    SyntaxError("import must be placed on a single line"),
+                    tokens[index - 1].position
+                )
                 path += comparison(TokenType.IDENTIFIER_TOKEN)
                 isDot = true
             } else {
