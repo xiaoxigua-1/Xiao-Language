@@ -237,11 +237,9 @@ class Lexer(private val stringStream: StringStream) {
                         "\r", "\n" -> {
                             index = 0
                             lineNumber++
-                            stringStream.nextChar()
                             return null
                         }
                     }
-
                     index++
                     stringStream.nextChar()
                 }
