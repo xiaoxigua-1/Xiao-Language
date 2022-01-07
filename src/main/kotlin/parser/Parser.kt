@@ -262,7 +262,7 @@ class Parser(lex: Lexer, private val file: File) {
         val fnKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val fnName = comparison(TokenType.IDENTIFIER_TOKEN)
         val parameters = mutableListOf<Parameter>()
-        val statements = mutableListOf<Statement>()
+        val statements = mutableListOf<ASTNode>()
         var colon: Token? = null
         var returnType: Type? = null
         var isComma = false
@@ -288,8 +288,8 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
 
-        while (!isEOFToken && currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
-            statements += statementsExpression()
+        expressions { currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN }.forEach {
+            statements += it
         }
 
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)

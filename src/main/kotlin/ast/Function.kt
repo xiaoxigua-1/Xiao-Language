@@ -9,7 +9,7 @@ data class Function(
     val parameters: List<Parameter>,
     val colon: Token?,
     val returnType: Type?,
-    val statements: List<Statement>,
+    val statements: List<ASTNode>,
     val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
 ) : ASTNode {
     val parametersDescriptor

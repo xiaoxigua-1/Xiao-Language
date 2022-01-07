@@ -13,28 +13,40 @@ import java.io.File
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
+    private val globalVariableId = mutableListOf<String>()
 
     fun check(): Pair<MutableMap<String, MutableList<ASTNode>>, List<Report>> {
         val checkAST = mutableListOf<ASTNode>()
-        val globalVariableId = mutableListOf<String>()
 
         for (node in ast) {
             if (node is Import) {
                 checkImport(node)
-            } else checkAST += when (node) {
-                is Function -> checkFunction(node)
-                is Statement.VariableDeclaration -> {
-                    checkVariable(node, globalVariableId.size + 1, globalVariableId)
-                    globalVariableId += node.variableName.literal
-                    node
-                }
-                else -> node
-            }
+            } else checkAST += checkExpressions(node)
         }
 
         asts[mainFile.nameWithoutExtension] = checkAST
 
         return asts to checkerReport
+    }
+
+    private fun checkExpressions(node: ASTNode): ASTNode {
+        return when (node) {
+            is Statement -> checkStatement(node)
+            is Function -> checkFunction(node)
+            else -> node
+        }
+    }
+
+    private fun checkStatement(statement: Statement): Statement {
+        return when (statement) {
+            is Statement.VariableDeclaration -> {
+                checkVariable(statement, globalVariableId.size + 1, globalVariableId)
+                globalVariableId += statement.variableName.literal
+                statement
+            }
+
+            else -> statement
+        }
     }
 
     private fun checkImport(node: Import) {

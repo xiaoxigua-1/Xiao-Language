@@ -56,7 +56,9 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
 
         if (function != null) {
             for (statement in function.statements) {
-                writeStatement(mv, statement)
+                when (statement) {
+                    is Statement -> writeStatement(mv, statement)
+                }
             }
         } else {
             mv.visitVarInsn(ALOAD, 0)
