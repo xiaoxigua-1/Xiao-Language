@@ -1,11 +1,12 @@
 package xiaoLanguage.bytecode
 
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
-import org.objectweb.asm.Type.*
 import xiaoLanguage.ast.ASTNode
 import xiaoLanguage.ast.Expression
 import xiaoLanguage.ast.Function
+import xiaoLanguage.ast.Statement
 import java.io.File
 
 class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val outputPath: String) {
@@ -40,13 +41,55 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         return cw.toByteArray()
     }
 
-    private fun writeFunction(cw: ClassWriter, function: Function) {
+    private fun writeFunction(cw: ClassWriter, function: Function? = null) {
+        var stacks = 1
+        var locals = 1
         val mv = cw.visitMethod(
-            function.accessor.access,
-            function.functionName.literal,
-            "(${function.parametersDescriptor})${function.returnTypeDescriptor}",
+            function?.accessor?.access ?: ACC_PUBLIC,
+            function?.functionName?.literal ?: "<init>",
+            "(${function?.parametersDescriptor ?: ""})${function?.returnTypeDescriptor ?: "V"}",
             null,
             null
         )
+
+        mv.visitCode()
+
+        if (function != null) {
+            for (statement in function.statements) {
+                writeStatement(mv, statement)
+            }
+        } else {
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitMethodInsn(
+                INVOKESPECIAL,
+                "java/lang/Object",
+                "<init>",
+                "()V",
+                false
+            )
+            mv.visitVarInsn(ALOAD, 0)
+        }
+        mv.visitInsn(RETURN)
+        mv.visitMaxs(stacks, locals)
+        mv.visitEnd()
+    }
+
+    private fun writeStatement(mv: MethodVisitor, statement: Statement) {
+        // TODO statements
+        when (statement) {
+            is Statement.VariableDeclaration -> {
+                writeExpression(mv, statement.expression)
+            }
+            else -> {}
+        }
+    }
+
+    private fun writeExpression(mv: MethodVisitor, expression: Expression?) {
+        when (expression) {
+            is Expression.StringExpression -> {
+
+            }
+            else -> {}
+        }
     }
 }
