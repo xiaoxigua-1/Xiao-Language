@@ -28,7 +28,6 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     fun parser(): Pair<MutableList<ASTNode>, MutableList<Report>> {
-        println(tokens)
         if (lexerReport.filterIsInstance<Error>().isEmpty()) {
             try {
                 ast = expressions { true }
