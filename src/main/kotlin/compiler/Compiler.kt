@@ -1,14 +1,11 @@
 package xiaoLanguage.compiler
 
 import xiaoLanguage.ast.ASTNode
-import xiaoLanguage.ast.Expression
 import xiaoLanguage.checker.Checker
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
 import xiaoLanguage.util.StringStream
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.name
 
 class Compiler(private val file: File) {
     fun compile(): MutableMap<String, MutableList<ASTNode>> {
@@ -16,12 +13,15 @@ class Compiler(private val file: File) {
         val lex = Lexer(stringStream)
         val parser = Parser(lex, file)
 
-        val (ast, report) = parser.parser()
+        val (ast, parserReport) = parser.parser()
 
-        report.forEach {
+        parserReport.forEach {
             it.printReport(file.readLines(), file.absolutePath)
         }
-
-        return Checker(ast, file).check()
+        val (structure, checkerReport) = Checker(ast, file).check()
+        checkerReport.forEach {
+            it.printReport(file.readLines(), file.absolutePath)
+        }
+        return structure
     }
 }

@@ -12,8 +12,8 @@ class CheckTest {
 
     @Test
     fun variableFindIdTest() {
-        val structure = checkTest("/var/var.xiao")
-        val varFileAST = structure["var"]
+        val structure = checkTest("/parserTestData/var/var.xiao")
+        val varFileAST = structure["parserTestData/var"]
 
         varFileAST?.forEach {
             if (it is Statement.VariableDeclaration) {

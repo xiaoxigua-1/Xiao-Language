@@ -63,7 +63,7 @@ class ParserTest {
     @Test
     fun parserImportTest() {
         val expectedData = listOf("xiao/Math", "test2", "xiao/Math/plus")
-        val ast = parserTest("/import/import.xiao")
+        val ast = parserTest("/parserTestData/import/import.xiao")
 
         ast.mapIndexed { index, node ->
             if (node is Import) {
@@ -86,7 +86,7 @@ class ParserTest {
             ExpectedFunctionData("test34", listOf("name", "info"), listOf("Str", "Int")),
             ExpectedFunctionData("test66", null, null, "Str")
         )
-        val ast = parserTest("/functions/function.xiao")
+        val ast = parserTest("/parserTestData/functions/function.xiao")
 
         ast.mapIndexed { index, node ->
             if (node is Function) {
@@ -109,7 +109,7 @@ class ParserTest {
      */
     @Test
     fun parserClassTest() {
-        val ast = parserTest("/classes/class.xiao")
+        val ast = parserTest("/parserTestData/classes/class.xiao")
         val expectedData = listOf(
             ExpectedClassData("A"),
             ExpectedClassData("B12"),
@@ -141,7 +141,7 @@ class ParserTest {
      */
     @Test
     fun parserVarTest() {
-        val ast = parserTest("/var/var.xiao")
+        val ast = parserTest("/parserTestData/var/var.xiao")
         val expectedData = listOf(
             ExpectedVariableData("a", "12"),
             ExpectedVariableData("b", "ABC", "Str"),
@@ -173,7 +173,7 @@ class ParserTest {
      */
     @Test
     fun parserIfStatementTest() {
-        val ast = parserTest("/ifStatement/if.xiao")
+        val ast = parserTest("/parserTestData/ifStatement/if.xiao")
 
         assertNotEquals(0, ast.size)
     }
@@ -201,7 +201,7 @@ class ParserTest {
             return strings
         }
 
-        val ast = parserTest("/operators/operator.xiao")
+        val ast = parserTest("/parserTestData/operators/operator.xiao")
         val expectedData = listOf(
             ExpectedOperatorData(listOf("10", "20", "30", "50"), listOf("+", "+", "+")),
             ExpectedOperatorData(listOf("10", "50", "20", "50"), listOf("/", ">", "<"))
@@ -223,7 +223,7 @@ class ParserTest {
      */
     @Test
     fun parserPathTest() {
-        val ast = parserTest("/path/path.xiao")
+        val ast = parserTest("/parserTestData/path/path.xiao")
         val expectedData = listOf(
             ExpectedPathData(
                 listOf("test", "test2", "test")
@@ -251,7 +251,7 @@ class ParserTest {
      */
     @Test
     fun parserReturnStatementTest() {
-        val ast = parserTest("/returnStatement/return.xiao")
+        val ast = parserTest("/parserTestData/returnStatement/return.xiao")
         val expectedData = listOf("100", "abc", "A", "a", "a")
 
         ast.mapIndexed { index, astNode ->

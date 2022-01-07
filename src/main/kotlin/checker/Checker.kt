@@ -14,7 +14,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
 
-    fun check(): MutableMap<String, MutableList<ASTNode>> {
+    fun check(): Pair<MutableMap<String, MutableList<ASTNode>>, List<Report>> {
         val checkAST = mutableListOf<ASTNode>()
         val globalVariableId = mutableListOf<String>()
 
@@ -34,7 +34,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
         asts[mainFile.nameWithoutExtension] = checkAST
 
-        return asts
+        return asts to checkerReport
     }
 
     private fun checkImport(node: Import) {
