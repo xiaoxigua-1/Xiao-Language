@@ -83,6 +83,23 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkClass(node: Class, variableHierarchy: MutableList<MutableList<ASTNode>>): Class {
+        if (variableHierarchy[variableHierarchy.size - 1].filterIsInstance<Class>()
+                .find { it.className.literal == node.className.literal } == null
+        ) {
+            variableHierarchy[variableHierarchy.size - 1] += node
+            variableHierarchy.add(mutableListOf())
+
+            node.functions.map { function ->
+                checkExpressions(function, variableHierarchy)
+                function
+            }
+
+            variableHierarchy.removeAt(variableHierarchy.size - 1)
+        } else checkerReport += Report.Error(
+            SyntaxError("Identifier '${node.className.literal}' has already been declared"),
+            node.className.position,
+            node.className.position
+        )
 
         return node
     }
