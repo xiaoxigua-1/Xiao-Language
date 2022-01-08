@@ -11,4 +11,7 @@ fn main() {
     }
     fn b() {}
     fn abc() {}
+    class A {}
+    class A {}
+    class B {}
 }

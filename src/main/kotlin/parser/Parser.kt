@@ -104,6 +104,7 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.SLASH_TOKEN,
             TokenType.MORE_TOKEN,
             TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress()
+            TokenType.ARROW_TOKEN -> generatorExpress()
             else -> valueExpress()
         }
     }
@@ -127,6 +128,33 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.INTEGER_LITERAL_TOKEN -> Expression.IntExpression(value)
             else -> Expression.VariableExpression(value)
         }
+    }
+
+    /**
+     * parse generator
+     * example "0->10"
+     * @return generator data class
+     */
+    private fun generatorExpress(): Expression {
+        val value = mutableListOf<Token>()
+
+        value += comparison(
+            TokenType.INTEGER_LITERAL_TOKEN,
+            TokenType.FLOAT_LITERAL_TOKEN,
+            TokenType.STRING_LITERAL_TOKEN,
+            TokenType.IDENTIFIER_TOKEN
+        )
+
+        comparison(TokenType.ARROW_TOKEN)
+
+        value += comparison(
+            TokenType.INTEGER_LITERAL_TOKEN,
+            TokenType.FLOAT_LITERAL_TOKEN,
+            TokenType.STRING_LITERAL_TOKEN,
+            TokenType.IDENTIFIER_TOKEN
+        )
+
+        return Expression.GeneratorExpression(value)
     }
 
     /**

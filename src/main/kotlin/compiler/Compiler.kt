@@ -18,10 +18,13 @@ class Compiler(private val file: File) {
         parserReport.forEach {
             it.printReport(file.readLines(), file.absolutePath)
         }
+
         val (structure, checkerReport) = Checker(ast, file).check()
+
         checkerReport.forEach {
             it.printReport(file.readLines(), file.absolutePath)
         }
+
         return structure
     }
 }
