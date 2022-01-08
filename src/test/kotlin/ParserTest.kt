@@ -2,6 +2,7 @@ import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
 import xiaoLanguage.lexer.Lexer
 import xiaoLanguage.parser.Parser
+import xiaoLanguage.tokens.TokenType
 import xiaoLanguage.util.Report
 import xiaoLanguage.util.StringStream
 import java.io.File
@@ -37,6 +38,11 @@ class ParserTest {
 
     data class ExpectedPathData(
         val names: List<String>
+    )
+
+    data class ExpectedTokenData(
+        val literal: String,
+        val type: TokenType
     )
 
     /**
@@ -267,6 +273,45 @@ class ParserTest {
                 is Expression.FloatExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.StringExpression -> assertEquals(expectedData[index], expression.value.literal)
                 else -> {}
+            }
+        }
+    }
+
+    /**
+     * The correctness of parse generator
+     */
+    @Test
+    fun parserGeneratorTest() {
+        val ast = parserTest("/parserTestData/generator/generator.xiao")
+        val expectedData = listOf(
+            listOf(
+                ExpectedTokenData("10", TokenType.INTEGER_LITERAL_TOKEN),
+                ExpectedTokenData("20", TokenType.INTEGER_LITERAL_TOKEN)
+            ),
+            listOf(
+                ExpectedTokenData("2", TokenType.STRING_LITERAL_TOKEN),
+                ExpectedTokenData("9", TokenType.STRING_LITERAL_TOKEN)
+            ),
+            listOf(
+                ExpectedTokenData("0.3", TokenType.FLOAT_LITERAL_TOKEN),
+                ExpectedTokenData("0.7", TokenType.FLOAT_LITERAL_TOKEN)
+            ),
+            listOf(
+                ExpectedTokenData(".5", TokenType.FLOAT_LITERAL_TOKEN),
+                ExpectedTokenData(".3", TokenType.FLOAT_LITERAL_TOKEN)
+            ),
+            listOf(
+                ExpectedTokenData("a", TokenType.IDENTIFIER_TOKEN),
+                ExpectedTokenData("b", TokenType.IDENTIFIER_TOKEN)
+            )
+        )
+
+        ast.mapIndexed { index, astNode ->
+            if (astNode is Expression.GeneratorExpression) {
+                astNode.value.mapIndexed { index2, token ->
+                    assertEquals(expectedData[index][index2].literal, token.literal)
+                    assertEquals(expectedData[index][index2].type, token.tokenType)
+                }
             }
         }
     }
