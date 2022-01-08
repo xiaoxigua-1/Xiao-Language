@@ -88,21 +88,24 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkFunction(node: Function, variableHierarchy: MutableList<MutableList<ASTNode>>): Function {
-        variableHierarchy.add(mutableListOf())
-        node.statements.map { statement ->
-            val variables = variableHierarchy[variableHierarchy.size - 1].filterIsInstance<Statement.VariableDeclaration>()
+        if (variableHierarchy[variableHierarchy.size - 1].filterIsInstance<Function>()
+                .find { it.functionName.literal == node.functionName.literal } == null
+        ) {
+            variableHierarchy[variableHierarchy.size - 1] += node
 
-            when (statement) {
-                is Statement.VariableDeclaration -> {
-                    checkVariable(statement, variables.size + 1, variables)
-                    variableHierarchy[variableHierarchy.size - 1] += statement
-                    node
-                }
-                else -> statement
+            variableHierarchy.add(mutableListOf())
+            node.statements.map { statement ->
+                checkExpressions(statement, variableHierarchy)
+                variableHierarchy[variableHierarchy.size - 1] += statement
+                statement
             }
 
             variableHierarchy.removeAt(variableHierarchy.size - 1)
-        }
+        } else checkerReport += Report.Error(
+            SyntaxError("Identifier '${node.functionName.literal}' has already been declared"),
+            node.functionName.position,
+            node.functionName.position
+        )
 
         return node
     }
@@ -114,13 +117,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
-        } else {
-            checkerReport += Report.Error(
-                SyntaxError("Identifier '${node.variableName.literal}' has already been declared"),
-                node.position,
-                node.position
-            )
-        }
+        } else checkerReport += Report.Error(
+            SyntaxError("Identifier '${node.variableName.literal}' has already been declared"),
+            node.position,
+            node.position
+        )
 
         return node
     }
