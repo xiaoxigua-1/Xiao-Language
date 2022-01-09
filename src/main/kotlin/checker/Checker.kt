@@ -7,6 +7,7 @@ import xiaoLanguage.ast.Import
 import xiaoLanguage.ast.Statement
 import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.exception.ModuleNotFoundError
+import xiaoLanguage.exception.NamingRulesError
 import xiaoLanguage.exception.SyntaxError
 import xiaoLanguage.util.Report
 import java.io.File
@@ -50,9 +51,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 val upHierarchyVariable = upHierarchy.filterIsInstance<Statement.VariableDeclaration>()
 
                 checkVariable(
-                    statement,
-                    upHierarchyVariable.size + 1,
-                    upHierarchyVariable
+                    statement, upHierarchyVariable.size + 1, upHierarchyVariable
                 )
 
                 variableHierarchy[variableHierarchy.size - 1] += statement
@@ -83,6 +82,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkClass(node: Class, variableHierarchy: MutableList<MutableList<ASTNode>>): Class {
+        if (node.className.literal[0].isLowerCase()) checkerReport += Report.Warning(
+            NamingRulesError("Class naming rules error."),
+            node.className.position,
+            hint = "correct naming rule 'class Example {}'"
+        )
         if (variableHierarchy[variableHierarchy.size - 1].filterIsInstance<Class>()
                 .find { it.className.literal == node.className.literal } == null
         ) {
@@ -128,9 +132,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkVariable(
-        node: Statement.VariableDeclaration,
-        id: Int,
-        variables: List<Statement.VariableDeclaration>
+        node: Statement.VariableDeclaration, id: Int, variables: List<Statement.VariableDeclaration>
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id

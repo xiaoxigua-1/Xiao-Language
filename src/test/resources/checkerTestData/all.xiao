@@ -14,4 +14,5 @@ fn main() {
     class A {}
     class A {}
     class B {}
+    class a {}
 }
