@@ -1,18 +1,14 @@
-im abc.acc.xiao
+im module.module
 
 fn main() {
-    var abc = 10
-    var abc = 20
-    var abc = 30
-    // 貢丸你看洨語言ㄟ
-    fn abc() {
-        fn a() {}
-        fn a() {}
+    fn b() {
+        fn aa() {}
     }
-    fn b() {}
-    fn abc() {}
+    b()
+    module.abc()
+    aa()
     class A {}
+    class b {}
     class A {}
-    class B {}
-    class a {}
+    class b {}
 }

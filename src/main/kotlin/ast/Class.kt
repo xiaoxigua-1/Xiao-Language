@@ -3,7 +3,7 @@ package xiaoLanguage.ast
 import xiaoLanguage.tokens.Token
 
 data class Class(
-    val classKeyword: Token,
+    val classKeyword: Token?,
     val className: Token,
-    val functions: MutableList<Function>,
+    val functions: List<Function>,
 ) : ASTNode

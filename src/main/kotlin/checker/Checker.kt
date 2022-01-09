@@ -1,12 +1,10 @@
 package xiaoLanguage.checker
 
-import xiaoLanguage.ast.ASTNode
-import xiaoLanguage.ast.Class
+import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
-import xiaoLanguage.ast.Import
-import xiaoLanguage.ast.Statement
 import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.exception.ModuleNotFoundError
+import xiaoLanguage.exception.NameError
 import xiaoLanguage.exception.NamingRulesError
 import xiaoLanguage.exception.SyntaxError
 import xiaoLanguage.util.Report
@@ -15,24 +13,24 @@ import java.io.File
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
-    private val hierarch = mutableListOf<MutableList<ASTNode>>(mutableListOf())
+    private val hierarchy = mutableListOf<MutableList<ASTNode>>(mutableListOf())
 
-    fun check(): Pair<MutableMap<String, MutableList<ASTNode>>, List<Report>> {
+    fun check(): CheckReturnData {
         val checkAST = mutableListOf<ASTNode>()
 
         for (node in ast) {
             if (node is Import) {
                 checkImport(node)
             } else {
-                val expression = checkExpressions(node, hierarch)
+                val expression = checkExpressions(node, hierarchy)
                 checkAST += expression
-                hierarch[0] += expression
+                hierarchy[0] += expression
             }
         }
 
         asts[mainFile.nameWithoutExtension] = checkAST
 
-        return asts to checkerReport
+        return CheckReturnData(asts, checkerReport, hierarchy[0])
     }
 
     private fun checkExpressions(node: ASTNode, variableHierarchy: MutableList<MutableList<ASTNode>>): ASTNode {
@@ -40,8 +38,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             is Statement -> checkStatement(node, variableHierarchy)
             is Function -> checkFunction(node, variableHierarchy)
             is Class -> checkClass(node, variableHierarchy)
+            is Expression -> checkExpress(node)
             else -> node
         }
+    }
+
+    private fun checkExpress(node: Expression): Expression = when (node) {
+        is Expression.CallFunctionExpression -> checkCallFunction(node)
+        else -> node
     }
 
     private fun checkStatement(statement: Statement, variableHierarchy: MutableList<MutableList<ASTNode>>): Statement {
@@ -50,14 +54,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 val upHierarchy = variableHierarchy[variableHierarchy.size - 1]
                 val upHierarchyVariable = upHierarchy.filterIsInstance<Statement.VariableDeclaration>()
 
-                checkVariable(
+                checkVariableStatement(
                     statement, upHierarchyVariable.size + 1, upHierarchyVariable
                 )
 
                 variableHierarchy[variableHierarchy.size - 1] += statement
                 statement
             }
-
+            is Statement.ExpressionStatement -> checkExpressionStatement(statement)
             else -> statement
         }
     }
@@ -78,7 +82,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             node.path[0].position,
             node.path[node.path.size - 1].position
         )
-        else asts[path] = Compiler(file).compile()[file.nameWithoutExtension]!!
+        else {
+            val (ast, value) = Compiler(file).compile()
+            hierarchy[0] += Class(null, node.path[node.path.size - 1], value.filterIsInstance<Function>())
+            asts[path] = ast[file.nameWithoutExtension]!!
+        }
     }
 
     private fun checkClass(node: Class, variableHierarchy: MutableList<MutableList<ASTNode>>): Class {
@@ -131,7 +139,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
-    private fun checkVariable(
+    private fun checkVariableStatement(
         node: Statement.VariableDeclaration, id: Int, variables: List<Statement.VariableDeclaration>
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
@@ -140,6 +148,34 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             SyntaxError("Identifier '${node.variableName.literal}' has already been declared"),
             node.position,
             node.position
+        )
+
+        return node
+    }
+
+    private fun checkExpressionStatement(node: Statement.ExpressionStatement): Statement.ExpressionStatement {
+        val expressions = node.expression
+
+        if (expressions.size == 1) {
+            checkExpress(expressions[0])
+        }
+
+        return node
+    }
+
+    private fun checkCallFunction(
+        node: Expression.CallFunctionExpression
+    ): Expression.CallFunctionExpression {
+        for (layers in (hierarchy.size - 1)downTo 0) {
+            val function =
+                hierarchy[layers].find { it is Function && it.functionName.literal == node.functionName.literal }
+
+            if (function != null) return node
+        }
+
+        checkerReport += Report.Error(
+            NameError("name '${node.functionName.literal}' function is not defined"),
+            node.functionName.position
         )
 
         return node
