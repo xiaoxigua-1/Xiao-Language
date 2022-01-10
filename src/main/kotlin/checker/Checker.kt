@@ -11,6 +11,7 @@ import xiaoLanguage.util.Report
 import java.io.File
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
+    private val stdPath = ""
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
     private val hierarchy = mutableListOf<MutableList<ASTNode>>(mutableListOf())
@@ -67,25 +68,25 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkImport(node: Import) {
-        val path = when (node.path[0].literal) {
-            "xiao" -> {
-                ""
-            }
-            else -> {
-                node.path.joinToString("/") { it.literal }
-            }
-        }
-        val file = File("${mainFile.absoluteFile.parent}/$path.xiao")
+        val path = node.path.joinToString("/") { it.literal }
+        var file = File("${mainFile.absoluteFile.parent}/$path.xiao")
 
-        if (!file.exists()) checkerReport += Report.Error(
-            ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
-            node.path[0].position,
-            node.path[node.path.size - 1].position
-        )
-        else {
-            val (ast, value) = Compiler(file).compile()
-            hierarchy[0] += ImportFileValue(node.path[node.path.size - 1].literal, value.filterIsInstance<Function>())
-            asts[path] = ast[file.nameWithoutExtension]!!
+        if (!file.exists()) {
+            file = File("$stdPath/$path.xiao")
+
+            if (!file.exists()) checkerReport += Report.Error(
+                ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
+                node.path[0].position,
+                node.path[node.path.size - 1].position
+            )
+            else {
+                val (ast, value) = Compiler(file).compile()
+                hierarchy[0] += ImportFileValue(
+                    node.path[node.path.size - 1].literal,
+                    value.filterIsInstance<Function>()
+                )
+                asts[path] = ast[file.nameWithoutExtension]!!
+            }
         }
     }
 
@@ -166,7 +167,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private fun checkCallFunction(
         node: Expression.CallFunctionExpression
     ): Expression.CallFunctionExpression {
-        for (layers in (hierarchy.size - 1)downTo 0) {
+        for (layers in (hierarchy.size - 1) downTo 0) {
             val function =
                 hierarchy[layers].find { it is Function && it.functionName.literal == node.functionName.literal }
 
