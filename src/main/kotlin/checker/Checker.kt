@@ -84,7 +84,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         )
         else {
             val (ast, value) = Compiler(file).compile()
-            hierarchy[0] += Class(null, node.path[node.path.size - 1], value.filterIsInstance<Function>())
+            hierarchy[0] += ImportFileValue(node.path[node.path.size - 1].literal, value.filterIsInstance<Function>())
             asts[path] = ast[file.nameWithoutExtension]!!
         }
     }
