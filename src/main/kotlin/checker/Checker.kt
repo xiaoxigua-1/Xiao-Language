@@ -180,6 +180,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                             ),
                             node.functionName.position
                         )
+                    } else {
+                        checkerReport += Report.Error(
+                            TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
+                            node.functionName.position
+                        )
                     }
                 }
 
