@@ -110,7 +110,6 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             variableHierarchy.removeAt(variableHierarchy.size - 1)
         } else checkerReport += Report.Error(
             SyntaxError("Identifier '${node.className.literal}' has already been declared"),
-            node.className.position,
             node.className.position
         )
 
@@ -133,7 +132,6 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             variableHierarchy.removeAt(variableHierarchy.size - 1)
         } else checkerReport += Report.Error(
             SyntaxError("Identifier '${node.functionName.literal}' has already been declared"),
-            node.functionName.position,
             node.functionName.position
         )
 
@@ -146,8 +144,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
         } else checkerReport += Report.Error(
-            SyntaxError("Identifier '${node.variableName.literal}' has already been declared"),
-            node.position,
+            SyntaxError("Variable '${node.variableName.literal}' has already been declared"),
             node.position
         )
 
