@@ -529,6 +529,7 @@ class Parser(lex: Lexer, private val file: File) {
                 }
                 TokenType.COMMA_TOKEN -> {
                     if (!isComma) syntaxError(SyntaxError(), currently?.position)
+                    comparison(TokenType.COMMA_TOKEN)
                     isComma = false
                 }
                 else -> {

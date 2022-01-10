@@ -3,10 +3,7 @@ package xiaoLanguage.checker
 import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
 import xiaoLanguage.compiler.Compiler
-import xiaoLanguage.exception.ModuleNotFoundError
-import xiaoLanguage.exception.NameError
-import xiaoLanguage.exception.NamingRulesError
-import xiaoLanguage.exception.SyntaxError
+import xiaoLanguage.exception.*
 import xiaoLanguage.util.Report
 import java.io.File
 
@@ -168,7 +165,26 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             val function =
                 hierarchy[layers].find { it is Function && it.functionName.literal == node.functionName.literal }
 
-            if (function != null) return node
+            if (function != null) {
+                val parameters = (function as Function).parameters
+
+                if (parameters.size != node.args.size) {
+                    if (parameters.size - node.args.size > 0) {
+                        val missing = parameters.size - node.args.size
+                        checkerReport += Report.Error(
+                            TypeError(
+                                "${node.functionName.literal}() missing $missing required positional arguments: " +
+                                        parameters.filterIndexed { index, _ ->
+                                            index > parameters.size - missing - 1
+                                        }.joinToString(" and ") { it.name.literal }
+                            ),
+                            node.functionName.position
+                        )
+                    }
+                }
+
+                return node
+            }
         }
 
         checkerReport += Report.Error(

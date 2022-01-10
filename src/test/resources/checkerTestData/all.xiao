@@ -1,14 +1,11 @@
 im module.module
 
 fn main() {
-    fn b() {
-        fn aa() {}
+    fn b(a: Int, b: Int, c: Int) {
+        fn aa() {
+            b(2, 3)
+        }
+        b(2,3,4)
     }
     b()
-    module.abc()
-    aa()
-    class A {}
-    class b {}
-    class A {}
-    class b {}
 }
