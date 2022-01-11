@@ -169,9 +169,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 val parameters = (function as Function).parameters
 
                 if (parameters.size != node.args.size) {
-                    if (parameters.size - node.args.size > 0) {
+                    checkerReport += if (parameters.size - node.args.size > 0) {
                         val missing = parameters.size - node.args.size
-                        checkerReport += Report.Error(
+                        Report.Error(
                             TypeError(
                                 "${node.functionName.literal}() missing $missing required positional arguments: " +
                                         parameters.filterIndexed { index, _ ->
@@ -180,12 +180,12 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                             ),
                             node.functionName.position
                         )
-                    } else {
-                        checkerReport += Report.Error(
-                            TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
-                            node.functionName.position
-                        )
-                    }
+                    } else Report.Error(
+                        TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
+                        node.functionName.position
+                    )
+                } else {
+                    // TODO check type
                 }
 
                 return node

@@ -31,11 +31,11 @@ class Lexer(private val stringStream: StringStream) {
             }
 
             when (stringStream.currently) {
-                "\n", "\r" -> {
+                "\n" -> {
                     lineNumber++
                     index = -1
                 }
-                " ", "\t", "\b" -> {}
+                " ", "\t", "\b", "\r" -> {}
                 Tokens.LEFT_CURLY_BRACKETS_TOKEN.token -> tokens += Token(
                     stringStream.currently, Position(lineNumber, index), TokenType.LEFT_CURLY_BRACKETS_TOKEN
                 )
@@ -83,13 +83,12 @@ class Lexer(private val stringStream: StringStream) {
 
                 Tokens.MINUS_TOKEN.token -> {
                     var minusStr = stringStream.currently
-
                     stringStream.nextChar()
                     tokens += when (stringStream.currently) {
                         Tokens.MORE_TOKEN.token -> {
                             minusStr += stringStream.currently
                             Token(
-                                minusStr, Position(lineNumber, index - 1, index), TokenType.ARROW_TOKEN
+                                minusStr, Position(lineNumber, index, ++index), TokenType.ARROW_TOKEN
                             )
                         }
                         else -> {
@@ -154,7 +153,8 @@ class Lexer(private val stringStream: StringStream) {
                         )
                     } else str += stringStream.currently
                 }
-                "\n", "\r" -> {
+                "\r" -> {}
+                "\n" -> {
                     index = 0
                     break
                 }
@@ -234,7 +234,7 @@ class Lexer(private val stringStream: StringStream) {
                 while (!stringStream.isEOF) {
                     when (stringStream.currently) {
                         Tokens.SLASH_TOKEN.token -> str += stringStream.currently
-                        "\r", "\n" -> {
+                        "\n" -> {
                             index = 0
                             lineNumber++
                             return null
@@ -253,7 +253,7 @@ class Lexer(private val stringStream: StringStream) {
                                 return null
                             } else stringStream.backChar()
                         }
-                        "\r", "\n" -> {
+                        "\n" -> {
                             index = 0
                             lineNumber++
                         }

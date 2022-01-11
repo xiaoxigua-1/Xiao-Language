@@ -9,6 +9,7 @@ class LexerTest {
     @Test
     fun lexTest() {
         val file = File(this::class.java.getResource("/lexerTestData/test.xiao")!!.path)
+        val fileLines = file.readLines()
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream).lex()
         val expectedData = listOf(
@@ -38,8 +39,13 @@ class LexerTest {
 
         lex.mapIndexed { index, token ->
             assertEquals(expectedData[index], token.tokenType)
-//            println(it.position.lineNumber)
-//            println(file.readLines()[it.position.lineNumber].slice(it.position.start .. it.position.end))
+            assertEquals(index, token.position.lineNumber)
+            if (token.tokenType != TokenType.STRING_LITERAL_TOKEN) {
+                assertEquals(
+                    token.literal,
+                    fileLines[token.position.lineNumber].slice(token.position.start..token.position.end)
+                )
+            }
         }
     }
 }
