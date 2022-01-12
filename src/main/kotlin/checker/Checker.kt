@@ -6,6 +6,7 @@ import xiaoLanguage.compiler.Compiler
 import xiaoLanguage.exception.*
 import xiaoLanguage.util.Report
 import java.io.File
+import java.util.*
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val stdPath = ""
@@ -78,7 +79,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             )
             else {
                 val (ast, value) = Compiler(file).compile()
-                hierarchy[0] += ImportFileValue(
+                hierarchy[0] += Check.ImportFileValue(
                     node.path[node.path.size - 1].literal,
                     value.filterIsInstance<Function>()
                 )
@@ -91,7 +92,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         if (node.className.literal[0].isLowerCase()) checkerReport += Report.Warning(
             NamingRulesError("Class naming rules error."),
             node.className.position,
-            hint = "correct naming rule 'class Example {}'"
+            help = listOf(
+                Report.Help(
+                    """
+                    |class ${node.className.literal.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} {}
+                    """,
+                    "correct naming rule capitalize."
+                )
+            )
         )
         if (variableHierarchy[variableHierarchy.size - 1].filterIsInstance<Class>()
                 .find { it.className.literal == node.className.literal } == null
@@ -120,6 +128,13 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             variableHierarchy[variableHierarchy.size - 1] += node
 
             variableHierarchy.add(mutableListOf())
+            node.parameters.mapIndexed { index, parameter ->
+                variableHierarchy[variableHierarchy.size - 1] += Check.ParameterValue(
+                    parameter.name.literal,
+                    parameter.type,
+                    index + 1
+                )
+            }
             node.statements.map { statement ->
                 checkExpressions(statement, variableHierarchy)
                 variableHierarchy[variableHierarchy.size - 1] += statement

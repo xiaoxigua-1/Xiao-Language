@@ -542,7 +542,7 @@ class Parser(lex: Lexer, private val file: File) {
         return Expression.CallFunctionExpression(functionName, args)
     }
 
-    //TODO bug: operator precedence
+    // TODO bug: operator precedence
     /**
      * parse operator
      * example "**10 * 10**"
@@ -562,7 +562,10 @@ class Parser(lex: Lexer, private val file: File) {
 
         while (!isEOFToken) {
             when (currently?.tokenType) {
-                TokenType.IDENTIFIER_TOKEN, TokenType.INTEGER_LITERAL_TOKEN, TokenType.FLOAT_LITERAL_TOKEN, TokenType.STRING_LITERAL_TOKEN -> {
+                TokenType.IDENTIFIER_TOKEN,
+                TokenType.INTEGER_LITERAL_TOKEN,
+                TokenType.FLOAT_LITERAL_TOKEN,
+                TokenType.STRING_LITERAL_TOKEN -> {
                     if (expressions.size != 0 && operator == null) {
                         if (brackets) syntaxError(SyntaxError(), currently?.position)
                         if (expressions[0].position?.lineNumber != currently!!.position.lineNumber) break
