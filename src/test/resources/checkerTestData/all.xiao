@@ -1,4 +1,5 @@
 im module.module
+im xiao.Math
 
 fn main() {
     fn b(a: Int, b: Int, c: Int) {

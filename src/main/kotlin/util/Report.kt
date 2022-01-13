@@ -4,28 +4,24 @@ import xiaoLanguage.tokens.Position
 
 sealed class Report {
     abstract val exception: Exception
-    abstract val start: Position?
-    abstract val end: Position?
+    abstract val code: Code?
     abstract val help: List<Help>?
 
     data class Error(
         override val exception: Exception,
-        override val start: Position? = null,
-        override val end: Position? = start,
+        override val code: Code? = null,
         override val help: List<Help>? = null
     ) : Report()
 
     data class Warning(
         override val exception: Exception,
-        override val start: Position? = null,
-        override val end: Position? = start,
+        override val code: Code? = null,
         override val help: List<Help>? = null
     ) : Report()
 
     data class Debug(
         override val exception: Exception,
-        override val start: Position? = null,
-        override val end: Position? = start,
+        override val code: Code? = null,
         override val help: List<Help>? = null
     ) : Report()
 
@@ -35,8 +31,31 @@ sealed class Report {
     ) {
         fun output(): String {
             return code.split("\n").mapIndexed { index, s ->
-                s.replaceIndentByMargin("  $index |")
+                s.replaceIndentByMargin("  $index| ")
             }.joinToString("\n")
+        }
+    }
+
+    data class Code(
+        val startLine: Int,
+        val arrowStart: Position,
+        val endLine: Int = startLine,
+        val arrowEnd: Position = arrowStart
+    ) {
+        fun output(source: List<String>): String {
+            var outputText = ""
+            for (lineNumber in startLine..endLine) {
+                val code = source[lineNumber].trimIndent()
+                val arrow = source[lineNumber].length - code.length
+                val arrowLength = arrowEnd.end - arrowStart.start
+                outputText += "${lineNumber + 1}".padStart(7) + "| $code\n"
+                if (lineNumber == arrowStart.lineNumber) outputText += (0..arrowStart.start - arrow + 8).joinToString("") { " " } +
+                        (0..arrowLength).joinToString(
+                    ""
+                ) { "^" } + if (lineNumber != endLine) "\n" else ""
+            }
+
+            return outputText
         }
     }
 
@@ -51,19 +70,11 @@ sealed class Report {
         val exceptionName = exception::class.java.simpleName
         val level = this::class.java.simpleName
 
-        val outputText = if (start != null) {
-            val code = source[start!!.lineNumber].trimIndent()
-            val arrow = source[start!!.lineNumber].length - code.length
-            val arrowNumber = if (end == null) 0 else {
-                if (start != null) end!!.end - start!!.start
-                else 0
-            }
-
+        val outputText = if (code != null) {
             """
             |${Color.valueOf(level).asciiColor}$exceptionName: ${exception.message} ${Color.End.asciiColor}
-            |   "$path":${start!!.lineNumber + 1}:${start!!.start}
-            |      > $code
-            |      ${(0..start!!.start + 1 - arrow).joinToString("") { " " }}${(0..arrowNumber).joinToString("") { "^" }}
+            |   $path:${code!!.arrowStart.lineNumber + 1}:${code!!.arrowStart.start}
+            |${code!!.output(source)}
             """.trimMargin() + (
                     help?.joinToString("\n") {
                         "\nhelp: ${it.helpHintString}" +

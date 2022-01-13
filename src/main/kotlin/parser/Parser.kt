@@ -23,7 +23,7 @@ class Parser(lex: Lexer, private val file: File) {
         try {
             tokens = lex.lex()
         } catch (e: Exception) {
-            lexerReport.add(Error(e, Position(lex.lineNumber, lex.exceptionIndex)))
+            lexerReport.add(Error(e, Code(lex.lineNumber, Position(lex.lineNumber, lex.exceptionIndex))))
         }
     }
 
@@ -33,7 +33,10 @@ class Parser(lex: Lexer, private val file: File) {
                 ast = expressions { true }
             } catch (e: Exception) {
                 if (e !is SyntaxError)
-                    parserReporter += Error(e, currently?.position)
+                    parserReporter += Error(
+                        e,
+                        if (currently == null) null else Code(currently!!.position.lineNumber, currently!!.position)
+                    )
             }
         } else {
             lexerReport.forEach {
@@ -67,7 +70,7 @@ class Parser(lex: Lexer, private val file: File) {
     }
 
     private fun syntaxError(exception: Exception, position: Position?) {
-        parserReporter += Error(exception, position)
+        parserReporter += Error(exception, if (position == null) null else Code(position.lineNumber, position))
 
         throw exception
     }

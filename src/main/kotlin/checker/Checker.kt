@@ -74,8 +74,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
             if (!file.exists()) checkerReport += Report.Error(
                 ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
-                node.path[0].position,
-                node.path[node.path.size - 1].position
+                Report.Code(
+                    node.importKeyword.position.lineNumber,
+                    node.path[0].position,
+                    arrowEnd = node.path[node.path.size - 1].position
+                )
             )
             else {
                 val (ast, value) = Compiler(file).compile()
@@ -91,7 +94,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private fun checkClass(node: Class, variableHierarchy: MutableList<MutableList<ASTNode>>): Class {
         if (node.className.literal[0].isLowerCase()) checkerReport += Report.Warning(
             NamingRulesError("Class naming rules error."),
-            node.className.position,
+            Report.Code(node.className.position.lineNumber, node.className.position),
             help = listOf(
                 Report.Help(
                     """
@@ -115,7 +118,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             variableHierarchy.removeAt(variableHierarchy.size - 1)
         } else checkerReport += Report.Error(
             SyntaxError("Identifier '${node.className.literal}' has already been declared"),
-            node.className.position
+            Report.Code(node.className.position.lineNumber, node.className.position)
         )
 
         return node
@@ -144,7 +147,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             variableHierarchy.removeAt(variableHierarchy.size - 1)
         } else checkerReport += Report.Error(
             SyntaxError("Identifier '${node.functionName.literal}' has already been declared"),
-            node.functionName.position
+            Report.Code(node.functionName.position.lineNumber, node.functionName.position)
         )
 
         return node
@@ -157,7 +160,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             node.findId = id
         } else checkerReport += Report.Error(
             SyntaxError("Variable '${node.variableName.literal}' has already been declared"),
-            node.position
+            Report.Code(node.position.lineNumber, node.position)
         )
 
         return node
@@ -193,11 +196,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                                             index > parameters.size - missing - 1
                                         }.joinToString(" and ") { it.name.literal }
                             ),
-                            node.functionName.position
+                            Report.Code(node.functionName.position.lineNumber, node.functionName.position)
                         )
                     } else Report.Error(
                         TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
-                        node.functionName.position
+                        Report.Code(node.functionName.position.lineNumber, node.functionName.position)
                     )
                 } else {
                     // TODO check type
@@ -209,7 +212,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
         checkerReport += Report.Error(
             NameError("name '${node.functionName.literal}' function is not defined"),
-            node.functionName.position
+            Report.Code(node.functionName.position.lineNumber, node.functionName.position)
         )
 
         return node
