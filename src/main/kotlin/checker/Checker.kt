@@ -32,6 +32,27 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return CheckReturnData(asts, checkerReport, hierarchy[0])
     }
 
+    private fun <T> findVarOrFunctionOrClass(name: String, vararg priority: T): ASTNode? {
+        data class FindData(val info: ASTNode, val priority: Int)
+        val data = mutableListOf<FindData>()
+        for (p in priority) {
+            for (i in hierarchy.size - 1 downTo 0) {
+                val findData = hierarchy[i].find {
+                    when (p) {
+                        is Function -> it is Function && it.functionName.literal == name
+                        is Class -> it is Class && it.className.literal == name
+                        is Statement.VariableDeclaration -> it is Statement.VariableDeclaration && it.variableName.literal == name
+                        else -> false
+                    }
+                }
+
+                if (findData != null) data += FindData(findData, i)
+            }
+        }
+
+        return data.maxWithOrNull(compareBy { it.priority })?.info
+    }
+
     private fun checkExpressions(node: ASTNode, variableHierarchy: MutableList<MutableList<ASTNode>>): ASTNode {
         return when (node) {
             is Statement -> checkStatement(node, variableHierarchy)
@@ -181,10 +202,20 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Expression.CallFunctionExpression {
         for (layers in (hierarchy.size - 1) downTo 0) {
             val function =
-                hierarchy[layers].find { it is Function && it.functionName.literal == node.functionName.literal }
+                hierarchy[layers].find {
+                    (it is Function && it.functionName.literal == node.functionName.literal) ||
+                            (it is Statement.VariableDeclaration && it.type?.typeTokens?.literal == "function")
+                }
 
             if (function != null) {
-                val parameters = (function as Function).parameters
+                val parameters = when (function) {
+                    is Function -> function.parameters
+//                    is Statement.VariableDeclaration -> {
+//                        val expression = function.expression as Expression.VariableExpression
+//                        (findVarOrFunctionOrClass(expression.value.literal, Function::class.java) as Function).parameters
+//                    }
+                    else -> listOf()
+                }
 
                 if (parameters.size != node.args.size) {
                     checkerReport += if (parameters.size - node.args.size > 0) {
