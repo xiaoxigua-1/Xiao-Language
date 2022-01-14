@@ -6,7 +6,7 @@ import xiaoLanguage.tokens.Token
 sealed class Expression : ASTNode {
     abstract val position: Position?
 
-    data class CallFunctionExpression(
+    data class CallExpression(
         val functionName: Token,
         val args: List<Expression>,
         override val position: Position? = null

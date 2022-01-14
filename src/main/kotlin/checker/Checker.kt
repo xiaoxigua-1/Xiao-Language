@@ -64,7 +64,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkExpress(node: Expression): Expression = when (node) {
-        is Expression.CallFunctionExpression -> checkCallFunction(node)
+        is Expression.CallExpression -> checkCallFunction(node)
         else -> node
     }
 
@@ -179,6 +179,12 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
+            
+            node.type = when (node.expression) {
+                is Expression.StringExpression -> Type(listOf(), 0, "Str")
+
+                else -> Type(listOf(), 0, "")
+            }
         } else checkerReport += Report.Error(
             SyntaxError("Variable '${node.variableName.literal}' has already been declared"),
             Report.Code(node.position.lineNumber, node.position)
@@ -198,13 +204,13 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     private fun checkCallFunction(
-        node: Expression.CallFunctionExpression
-    ): Expression.CallFunctionExpression {
+        node: Expression.CallExpression
+    ): Expression.CallExpression {
         for (layers in (hierarchy.size - 1) downTo 0) {
             val function =
                 hierarchy[layers].find {
                     (it is Function && it.functionName.literal == node.functionName.literal) ||
-                            (it is Statement.VariableDeclaration && it.type?.typeTokens?.literal == "function")
+                            (it is Statement.VariableDeclaration && it.type?.type == "function")
                 }
 
             if (function != null) {

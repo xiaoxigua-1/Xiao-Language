@@ -11,7 +11,7 @@ sealed class Statement : ASTNode {
         val mutKeyword: Token? = null,
         val variableName: Token,
         val colon: Token?,
-        val type: Type?,
+        var type: Type?,
         val expression: Expression?,
         var findId: Int? = null,
         override val position: Position = variableName.position

@@ -161,7 +161,7 @@ class ParserTest {
                 assertEquals(expectedData[index].type, astNode.type?.typeTokens?.literal)
 
                 when (expression) {
-                    is Expression.CallFunctionExpression -> assertEquals(
+                    is Expression.CallExpression -> assertEquals(
                         expectedData[index].value,
                         expression.functionName.literal
                     )
@@ -243,7 +243,7 @@ class ParserTest {
             astNode as Statement.ExpressionStatement
 
             astNode.expression.mapIndexed { index2, expression ->
-                if (expression is Expression.CallFunctionExpression) {
+                if (expression is Expression.CallExpression) {
                     assertEquals(expectedData[index].names[index2], expression.functionName.literal)
                 } else if (expression is Expression.VariableExpression) {
                     assertEquals(expectedData[index].names[index2], expression.value.literal)
@@ -264,7 +264,7 @@ class ParserTest {
             astNode as Statement.ReturnStatement
 
             when (val expression = astNode.expression) {
-                is Expression.CallFunctionExpression -> assertEquals(
+                is Expression.CallExpression -> assertEquals(
                     expectedData[index],
                     expression.functionName.literal
                 )

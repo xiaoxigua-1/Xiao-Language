@@ -517,7 +517,7 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**test()**"
      * @return return statement data class
      */
-    private fun callFunction(): Expression.CallFunctionExpression {
+    private fun callFunction(): Expression.CallExpression {
         val functionName = comparison(TokenType.IDENTIFIER_TOKEN)
         val args = mutableListOf<Expression>()
         var isComma = false
@@ -542,7 +542,7 @@ class Parser(lex: Lexer, private val file: File) {
                 }
             }
         }
-        return Expression.CallFunctionExpression(functionName, args)
+        return Expression.CallExpression(functionName, args)
     }
 
     // TODO bug: operator precedence
@@ -624,21 +624,21 @@ class Parser(lex: Lexer, private val file: File) {
      */
     private fun typeExpression(): Type {
         var isLeftSquareBrackets = true
-        val typeToken = comparison(TokenType.IDENTIFIER_TOKEN)
+        val typeTokens = mutableListOf(comparison(TokenType.IDENTIFIER_TOKEN))
         var array = 0
 
         while (!isEOFToken) {
             when (currently?.tokenType) {
                 TokenType.LEFT_SQUARE_BRACKETS_TOKEN -> {
                     if (isLeftSquareBrackets) {
-                        comparison(TokenType.LEFT_SQUARE_BRACKETS_TOKEN)
+                        typeTokens += comparison(TokenType.LEFT_SQUARE_BRACKETS_TOKEN)
                         array++
                         isLeftSquareBrackets = false
                     } else syntaxError(SyntaxError(), currently?.position)
                 }
                 TokenType.RIGHT_SQUARE_BRACKETS_TOKEN -> {
                     if (!isLeftSquareBrackets) {
-                        comparison(TokenType.RIGHT_SQUARE_BRACKETS_TOKEN)
+                        typeTokens += comparison(TokenType.RIGHT_SQUARE_BRACKETS_TOKEN)
                         isLeftSquareBrackets = true
                     } else syntaxError(SyntaxError(), currently?.position)
                 }
@@ -649,6 +649,6 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
-        return Type(typeToken, array)
+        return Type(typeTokens, array, typeTokens[0].literal)
     }
 }
