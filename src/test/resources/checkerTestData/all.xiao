@@ -10,9 +10,9 @@ fn main() {
         b(2, 3, 4)
     }
     b()
-    class A {}
     class aalsdhfkljasjfhsfadfas {
         var test = 10
+        var mut test2 = .3
         fn test() {
             print(test)
             test = 10

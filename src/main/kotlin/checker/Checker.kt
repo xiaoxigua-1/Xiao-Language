@@ -7,6 +7,7 @@ import xiaoLanguage.exception.*
 import xiaoLanguage.util.Report
 import java.io.File
 import java.util.*
+import kotlin.reflect.KMutableProperty1
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val stdPath = ""
@@ -32,22 +33,21 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return CheckReturnData(asts, checkerReport, hierarchy[0])
     }
 
-    private fun <T> findVarOrFunctionOrClass(name: String, vararg priority: T): ASTNode? {
+    private fun findVarOrFunctionOrClass(name: String, judgmental: (ASTNode) -> Boolean): ASTNode? {
         data class FindData(val info: ASTNode, val priority: Int)
-        val data = mutableListOf<FindData>()
-        for (p in priority) {
-            for (i in hierarchy.size - 1 downTo 0) {
-                val findData = hierarchy[i].find {
-                    when (p) {
-                        is Function -> it is Function && it.functionName.literal == name
-                        is Class -> it is Class && it.className.literal == name
-                        is Statement.VariableDeclaration -> it is Statement.VariableDeclaration && it.variableName.literal == name
-                        else -> false
-                    }
-                }
 
-                if (findData != null) data += FindData(findData, i)
+        val data = mutableListOf<FindData>()
+        for (i in hierarchy.size - 1 downTo 0) {
+            val findData = hierarchy[i].find {
+                when (it) {
+                    is Function -> it.functionName.literal == name && judgmental(it)
+                    is Class -> it.className.literal == name && judgmental(it)
+                    is Statement.VariableDeclaration -> it.variableName.literal == name && judgmental(it)
+                    else -> false
+                }
             }
+
+            if (findData != null) data += FindData(findData, i)
         }
 
         return data.maxWithOrNull(compareBy { it.priority })?.info
@@ -65,6 +65,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
     private fun checkExpress(node: Expression): Expression = when (node) {
         is Expression.CallExpression -> checkCallFunction(node)
+        is Expression.ReSetVariableExpression -> checkReSetVariableValue(node)
         else -> node
     }
 
@@ -131,12 +132,12 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             hierarchy[hierarchy.size - 1] += node
             hierarchy.add(mutableListOf())
 
-            node.functions.map { function ->
-                checkExpressions(function)
-            }
-
             node.variables.map { variableDeclaration ->
                 checkStatement(variableDeclaration)
+            }
+
+            node.functions.map { function ->
+                checkExpressions(function)
             }
 
             hierarchy.removeAt(hierarchy.size - 1)
@@ -182,7 +183,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
-            
+
             node.type = when (node.expression) {
                 is Expression.StringExpression -> Type(listOf(), 0, "Str")
 
@@ -256,6 +257,24 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             Report.Code(node.name.position.lineNumber, node.name.position)
         )
 
+        return node
+    }
+
+    private fun checkReSetVariableValue(node: Expression.ReSetVariableExpression): Expression.ReSetVariableExpression {
+        val variable =
+            findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration } as Statement.VariableDeclaration
+        if (variable.mutKeyword == null) checkerReport += Report.Error(
+            TypeError("Cannot assign twice to immutable variable"),
+            Report.Code(node.variableName.position.lineNumber, node.variableName.position),
+            help = listOf(
+                Report.Help(
+                    """
+                        |var mut ${node.variableName.literal} = ...
+                    """,
+                    "make ${node.variableName.literal} mutable"
+                )
+            )
+        )
         return node
     }
 }
