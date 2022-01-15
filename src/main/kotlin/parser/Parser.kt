@@ -108,6 +108,7 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.MORE_TOKEN,
             TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress()
             TokenType.ARROW_TOKEN -> generatorExpress()
+            TokenType.EQUAL_TOKEN -> reSetVariableExpression()
             else -> valueExpress()
         }
     }
@@ -138,7 +139,7 @@ class Parser(lex: Lexer, private val file: File) {
      * example "0->10"
      * @return generator data class
      */
-    private fun generatorExpress(): Expression {
+    private fun generatorExpress(): Expression.GeneratorExpression {
         val value = mutableListOf<Token>()
 
         value += comparison(
@@ -158,6 +159,13 @@ class Parser(lex: Lexer, private val file: File) {
         )
 
         return Expression.GeneratorExpression(value)
+    }
+
+    private fun reSetVariableExpression(): Expression.ReSetVariableExpression {
+        val variableToken = comparison(TokenType.IDENTIFIER_TOKEN)
+        comparison(TokenType.EQUAL_TOKEN)
+
+        return Expression.ReSetVariableExpression(variableToken, path())
     }
 
     /**
@@ -203,14 +211,7 @@ class Parser(lex: Lexer, private val file: File) {
         while (!isEOFToken) {
             if (!isDot) {
                 isDot = true
-
-                when (val expression = expression()) {
-                    is Expression.IntExpression, is Expression.FloatExpression, is Expression.StringExpression -> syntaxError(
-                        SyntaxError(),
-                        expression.position
-                    )
-                    else -> path += expression
-                }
+                path += expression()
             } else {
                 if (currently?.tokenType == TokenType.DOT_TOKEN) {
                     comparison(TokenType.DOT_TOKEN)

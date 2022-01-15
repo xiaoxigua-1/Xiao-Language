@@ -212,8 +212,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         for (layers in (hierarchy.size - 1) downTo 0) {
             val function =
                 hierarchy[layers].find {
-                    (it is Function && it.functionName.literal == node.functionName.literal) ||
-                            (it is Statement.VariableDeclaration && it.type?.type == "function")
+                    (it is Function && it.functionName.literal == node.name.literal) ||
+                            (it is Statement.VariableDeclaration && it.type?.type == "function") ||
+                            (it is Class && it.className.literal == node.name.literal)
                 }
 
             if (function != null) {
@@ -231,16 +232,16 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         val missing = parameters.size - node.args.size
                         Report.Error(
                             TypeError(
-                                "${node.functionName.literal}() missing $missing required positional arguments: " +
+                                "${node.name.literal}() missing $missing required positional arguments: " +
                                         parameters.filterIndexed { index, _ ->
                                             index > parameters.size - missing - 1
                                         }.joinToString(" and ") { it.name.literal }
                             ),
-                            Report.Code(node.functionName.position.lineNumber, node.functionName.position)
+                            Report.Code(node.name.position.lineNumber, node.name.position)
                         )
                     } else Report.Error(
                         TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
-                        Report.Code(node.functionName.position.lineNumber, node.functionName.position)
+                        Report.Code(node.name.position.lineNumber, node.name.position)
                     )
                 } else {
                     // TODO check type
@@ -251,8 +252,8 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
 
         checkerReport += Report.Error(
-            NameError("name '${node.functionName.literal}' function is not defined"),
-            Report.Code(node.functionName.position.lineNumber, node.functionName.position)
+            NameError("name '${node.name.literal}' function is not defined"),
+            Report.Code(node.name.position.lineNumber, node.name.position)
         )
 
         return node

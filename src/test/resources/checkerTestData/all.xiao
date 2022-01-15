@@ -11,5 +11,12 @@ fn main() {
     }
     b()
     class A {}
-    class aalsdhfkljasjfhsfadfas {}
+    class aalsdhfkljasjfhsfadfas {
+        var test = 10
+        fn test() {
+            print(test)
+            test = 10
+        }
+    }
+    aalsdhfkljasjfhsfadfas().test()
 }
