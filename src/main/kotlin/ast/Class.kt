@@ -6,4 +6,5 @@ data class Class(
     val classKeyword: Token?,
     val className: Token,
     val functions: List<Function>,
+    val variables: List<Statement.VariableDeclaration>
 ) : ASTNode

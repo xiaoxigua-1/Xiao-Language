@@ -269,19 +269,21 @@ class Parser(lex: Lexer, private val file: File) {
         val classKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
         val className = comparison(TokenType.IDENTIFIER_TOKEN)
         val functions = mutableListOf<Function>()
+        val variables = mutableListOf<Statement.VariableDeclaration>()
 
         comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
 
         while (!isEOFToken && currently?.tokenType != TokenType.RIGHT_CURLY_BRACKETS_TOKEN) {
             when (currently?.literal) {
                 Keyword.FUNCTION_KEYWORD.keyword -> functions += functionExpression()
+                Keyword.VARIABLE_KEYWORD.keyword -> variables += variableDeclarationExpression()
                 else -> parserReporter.add(Error(SyntaxError()))
             }
         }
 
         comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
 
-        return Class(classKeyword = classKeyword, className = className, functions = functions)
+        return Class(classKeyword, className, functions, variables)
     }
 
     /**

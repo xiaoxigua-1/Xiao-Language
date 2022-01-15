@@ -102,10 +102,10 @@ class ParserTest {
 
                 node.parameters.mapIndexed { index2, parameter ->
                     assertEquals(expectedData[index].parameter?.get(index2), parameter.name.literal)
-                    assertEquals(expectedData[index].parameterType?.get(index2), parameter.type.typeTokens.literal)
+                    assertEquals(expectedData[index].parameterType?.get(index2), parameter.type.type)
                 }
 
-                assertEquals(expectedData[index].returnType, node.returnType?.typeTokens?.literal)
+                assertEquals(expectedData[index].returnType, node.returnType?.type)
             }
         }
     }
@@ -134,7 +134,7 @@ class ParserTest {
                         assertEquals(expectedData[index].functionParameters?.get(index3), parameter.name.literal)
                         assertEquals(
                             expectedData[index].functionParameterType?.get(index3),
-                            parameter.type.typeTokens.literal
+                            parameter.type.type
                         )
                     }
                 }
@@ -158,7 +158,7 @@ class ParserTest {
             if (astNode is Statement.VariableDeclaration) {
                 val expression = astNode.expression
                 assertEquals(expectedData[index].name, astNode.variableName.literal)
-                assertEquals(expectedData[index].type, astNode.type?.typeTokens?.literal)
+                assertEquals(expectedData[index].type, astNode.type?.type)
 
                 when (expression) {
                     is Expression.CallExpression -> assertEquals(
