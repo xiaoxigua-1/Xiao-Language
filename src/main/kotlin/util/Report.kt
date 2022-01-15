@@ -31,7 +31,7 @@ sealed class Report {
     ) {
         fun output(): String {
             return code.split("\n").mapIndexed { index, s ->
-                s.replaceIndentByMargin("  $index| ")
+                s.replaceIndentByMargin("$index| ".padStart(9))
             }.joinToString("\n")
         }
     }
@@ -77,7 +77,7 @@ sealed class Report {
             |${code!!.output(source)}
             """.trimMargin() + (
                     help?.joinToString("\n") {
-                        "\nhelp: ${it.helpHintString}" +
+                        "\n   help: ${it.helpHintString}" +
                                 it.output()
                     } ?: ""
                     )
