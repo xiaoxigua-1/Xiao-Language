@@ -53,6 +53,22 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return data.maxWithOrNull(compareBy { it.priority })?.info
     }
 
+    private fun autoType(expression: Expression): Type = when (expression) {
+        is Expression.StringExpression -> Type(listOf(), 0, "Str")
+        is Expression.NullExpression -> Type(listOf(), 0, "Null")
+        is Expression.BoolExpression -> Type(listOf(), 0, "Bool")
+        is Expression.VariableExpression -> {
+            val findVar =
+                findVarOrFunctionOrClass(expression.value.literal) { it is Statement.VariableDeclaration }
+            Type(
+                listOf(),
+                0,
+                (findVar as Statement.VariableDeclaration).type!!.type
+            )
+        }
+        else -> Type(listOf(), 0, "")
+    }
+
     private fun checkExpressions(node: ASTNode): ASTNode {
         return when (node) {
             is Statement -> checkStatement(node)
@@ -184,21 +200,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
 
-            node.type = when (node.expression) {
-                is Expression.StringExpression -> Type(listOf(), 0, "Str")
-                is Expression.NullExpression -> Type(listOf(), 0, "Null")
-                is Expression.BoolExpression -> Type(listOf(), 0, "Bool")
-                is Expression.VariableExpression -> {
-                    val findVar =
-                        findVarOrFunctionOrClass(node.expression.value.literal) { it is Statement.VariableDeclaration }
-                    Type(
-                        listOf(),
-                        0,
-                        (findVar as Statement.VariableDeclaration).type!!.type
-                    )
-                }
-                else -> Type(listOf(), 0, "")
-            }
+            node.type = autoType(node.expression)
         } else checkerReport += Report.Error(
             SyntaxError("Variable '${node.variableName.literal}' has already been declared"),
             Report.Code(node.position.lineNumber, node.position)
@@ -285,6 +287,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 )
             )
         )
+
+        val reSetVariableValueType = autoType(node.reSetValue[node.reSetValue.size - 1]).type
+
+        if (reSetVariableValueType != variable.type?.type) checkerReport += Report.Error(
+            TypeError("${variable.type?.type} cannot be converted to $reSetVariableValueType"),
+            Report.Code(node.reSetValue[node.reSetValue.size - 1].position.lineNumber, node.reSetValue[node.reSetValue.size - 1].position)
+        )
+
         return node
     }
 }

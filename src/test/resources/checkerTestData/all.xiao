@@ -12,11 +12,10 @@ fn main() {
     b()
     class aalsdhfkljasjfhsfadfas {
         var test = 10
-        var mut test2 = .3
+        var mut test2 = false
         fn test() {
-            print(test)
             test = 10
-            test2 = .5
+            test2 = null
         }
     }
     aalsdhfkljasjfhsfadfas().test()
