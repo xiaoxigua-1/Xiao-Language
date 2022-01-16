@@ -580,7 +580,7 @@ class Parser(lex: Lexer, private val file: File) {
                 TokenType.STRING_LITERAL_TOKEN -> {
                     if (expressions.size != 0 && operator == null) {
                         if (brackets) syntaxError(SyntaxError(), currently?.position)
-                        if (expressions[0].position?.lineNumber != currently!!.position.lineNumber) break
+                        if (expressions[0].position.lineNumber != currently!!.position.lineNumber) break
                         else syntaxError(SyntaxError(), currently?.position)
                     }
 

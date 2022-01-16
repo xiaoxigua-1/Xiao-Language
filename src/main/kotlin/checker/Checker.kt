@@ -32,6 +32,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return CheckReturnData(asts, checkerReport, hierarchy[0])
     }
 
+    /**
+     * Linear search for variable or function or class
+     * @return ASTNode
+     */
     private fun findVarOrFunctionOrClass(name: String, judgmental: (ASTNode) -> Boolean): ASTNode? {
         data class FindData(val info: ASTNode, val priority: Int)
 
@@ -52,6 +56,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return data.maxWithOrNull(compareBy { it.priority })?.info
     }
 
+    /**
+     * Automatically determine the express type
+     * @return Type data class
+     */
     private fun autoType(expression: Expression): Type = when (expression) {
         is Expression.StringExpression -> Type(listOf(), 0, "Str")
         is Expression.NullExpression -> Type(listOf(), 0, "Null")
@@ -75,11 +83,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         else -> Type(listOf(), 0, "")
     }
 
-    private fun getPathStringList(expressions: List<Expression>): List<String> {
+    /**
+     * get expressions to the string list
+     */
+    private fun getExpressionsStringList(expressions: List<Expression>): List<String> {
         return expressions.map {
             when (it) {
                 is Expression.IntExpression -> it.value.literal
-                is Expression.CallExpression -> "${it.name.literal}(${getPathStringList(it.args).joinToString(", ")})"
+                is Expression.CallExpression -> "${it.name.literal}(${getExpressionsStringList(it.args).joinToString(", ")})"
                 is Expression.BoolExpression -> it.value.literal
                 is Expression.StringExpression -> it.value.literal
                 is Expression.FloatExpression -> it.value.literal
@@ -90,6 +101,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * Check Statement and Function and Class and Expression correctness
+     */
     private fun checkExpressions(node: ASTNode): ASTNode {
         return when (node) {
             is Statement -> checkStatement(node)
@@ -100,12 +114,18 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * Check expression correctness
+     */
     private fun checkExpress(node: Expression): Expression = when (node) {
         is Expression.CallExpression -> checkCallFunction(node)
         is Expression.ReSetVariableExpression -> checkReSetVariableValue(node)
         else -> node
     }
 
+    /**
+     * check statement correctness
+     */
     private fun checkStatement(statement: Statement): Statement {
         return when (statement) {
             is Statement.VariableDeclaration -> {
@@ -124,6 +144,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * check import correctness
+     * judgment is there this module
+     */
     private fun checkImport(node: Import) {
         val path = node.path.joinToString("/") { it.literal }
         var file = File("${mainFile.absoluteFile.parent}/$path.xiao")
@@ -150,6 +174,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * check class correctness
+     */
     private fun checkClass(node: Class): Class {
         if (node.className.literal[0].isLowerCase()) checkerReport += Report.Warning(
             NamingRulesError("Class naming rules error."),
@@ -233,7 +260,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     Report.Help(
                         """
                         |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType.type} = ${
-                            getPathStringList(
+                            getExpressionsStringList(
                                 node.expression
                             ).joinToString(".")
                         }
