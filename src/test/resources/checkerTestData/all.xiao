@@ -2,5 +2,5 @@ im module.module
 im xiao.Math
 
 fn main() {
-    var a: Int = false
+    var a: Int = 10
 }
