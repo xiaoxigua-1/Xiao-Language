@@ -213,6 +213,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
+    /**
+     * Check function correctness
+     */
     private fun checkFunction(node: Function): Function {
         if (hierarchy[hierarchy.size - 1].filterIsInstance<Function>()
                 .find { it.functionName.literal == node.functionName.literal } == null
@@ -242,6 +245,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
+    /**
+     * Check variable declaration correctness
+     */
     private fun checkVariableStatement(
         node: Statement.VariableDeclaration, id: Int, variables: List<Statement.VariableDeclaration>
     ): Statement.VariableDeclaration {
@@ -286,6 +292,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
+    /**
+     * Check call function correctness
+     */
     private fun checkCallFunction(
         node: Expression.CallExpression
     ): Expression.CallExpression {
@@ -339,6 +348,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
+    /**
+     * Check reset variable value correctness
+     */
     private fun checkResetVariableValue(node: Expression.ResetVariableExpression): Expression.ResetVariableExpression {
         val variable =
             findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration } as Statement.VariableDeclaration
