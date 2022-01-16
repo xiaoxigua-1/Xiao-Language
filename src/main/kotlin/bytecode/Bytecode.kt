@@ -80,7 +80,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         // TODO statements
         when (statement) {
             is Statement.VariableDeclaration -> {
-                writeExpression(mv, statement.expression)
+//                writeExpression(mv, statement.expression)
             }
             else -> {}
         }

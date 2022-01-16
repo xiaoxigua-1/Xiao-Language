@@ -367,7 +367,7 @@ class Parser(lex: Lexer, private val file: File) {
 
         comparison(TokenType.EQUAL_TOKEN)
 
-        val value = expression()
+        val value = path()
 
         return Statement.VariableDeclaration(
             variableKeyword,

@@ -156,7 +156,7 @@ class ParserTest {
 
         ast.mapIndexed { index, astNode ->
             if (astNode is Statement.VariableDeclaration) {
-                val expression = astNode.expression
+                val expression = astNode.expression[0]
                 assertEquals(expectedData[index].name, astNode.variableName.literal)
                 assertEquals(expectedData[index].type, astNode.type?.type)
 
