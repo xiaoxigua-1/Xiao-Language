@@ -84,7 +84,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     /**
-     * get expressions to the string list
+     * Get expressions to the string list
      */
     private fun getExpressionsStringList(expressions: List<Expression>): List<String> {
         return expressions.map {
@@ -119,12 +119,12 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
      */
     private fun checkExpress(node: Expression): Expression = when (node) {
         is Expression.CallExpression -> checkCallFunction(node)
-        is Expression.ReSetVariableExpression -> checkReSetVariableValue(node)
+        is Expression.ResetVariableExpression -> checkResetVariableValue(node)
         else -> node
     }
 
     /**
-     * check statement correctness
+     * Check statement correctness
      */
     private fun checkStatement(statement: Statement): Statement {
         return when (statement) {
@@ -145,7 +145,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     /**
-     * check import correctness
+     * Check import correctness
      * judgment is there this module
      */
     private fun checkImport(node: Import) {
@@ -175,7 +175,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     }
 
     /**
-     * check class correctness
+     * Check class correctness
      */
     private fun checkClass(node: Class): Class {
         if (node.className.literal[0].isLowerCase()) checkerReport += Report.Warning(
@@ -339,7 +339,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
-    private fun checkReSetVariableValue(node: Expression.ReSetVariableExpression): Expression.ReSetVariableExpression {
+    private fun checkResetVariableValue(node: Expression.ResetVariableExpression): Expression.ResetVariableExpression {
         val variable =
             findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration } as Statement.VariableDeclaration
         if (variable.mutKeyword == null) checkerReport += Report.Error(

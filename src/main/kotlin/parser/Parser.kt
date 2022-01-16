@@ -167,11 +167,11 @@ class Parser(lex: Lexer, private val file: File) {
         return Expression.GeneratorExpression(value)
     }
 
-    private fun reSetVariableExpression(): Expression.ReSetVariableExpression {
+    private fun reSetVariableExpression(): Expression.ResetVariableExpression {
         val variableToken = comparison(TokenType.IDENTIFIER_TOKEN)
         comparison(TokenType.EQUAL_TOKEN)
 
-        return Expression.ReSetVariableExpression(variableToken, path())
+        return Expression.ResetVariableExpression(variableToken, path())
     }
 
     /**

@@ -12,7 +12,7 @@ sealed class Expression : ASTNode {
         override val position: Position = name.position
     ) : Expression()
 
-    data class ReSetVariableExpression(
+    data class ResetVariableExpression(
         val variableName: Token,
         val reSetValue: List<Expression>,
         override val position: Position = variableName.position
