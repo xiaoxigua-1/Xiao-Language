@@ -7,7 +7,6 @@ import xiaoLanguage.exception.*
 import xiaoLanguage.util.Report
 import java.io.File
 import java.util.*
-import kotlin.reflect.KMutableProperty1
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val stdPath = ""
@@ -66,14 +65,21 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 (findVar as Statement.VariableDeclaration).type!!.type
             )
         }
+        is Expression.CallExpression -> {
+            when (val find = findVarOrFunctionOrClass(expression.name.literal) { it is Function || it is Class }) {
+                is Class -> Type(listOf(), 0, find.className.literal)
+                is Function -> Type(listOf(), 0, find.returnType!!.type)
+                else -> Type(listOf(), 0, "")
+            }
+        }
         else -> Type(listOf(), 0, "")
     }
 
-    private fun getPathString(expressions: List<Expression>): List<String> {
+    private fun getPathStringList(expressions: List<Expression>): List<String> {
         return expressions.map {
             when (it) {
                 is Expression.IntExpression -> it.value.literal
-                is Expression.CallExpression -> "${it.name.literal}(${getPathString(it.args).joinToString(", ")})"
+                is Expression.CallExpression -> "${it.name.literal}(${getPathStringList(it.args).joinToString(", ")})"
                 is Expression.BoolExpression -> it.value.literal
                 is Expression.StringExpression -> it.value.literal
                 is Expression.FloatExpression -> it.value.literal
@@ -227,7 +233,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     Report.Help(
                         """
                         |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType.type} = ${
-                            getPathString(
+                            getPathStringList(
                                 node.expression
                             ).joinToString(".")
                         }
