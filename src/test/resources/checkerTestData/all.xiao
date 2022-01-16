@@ -16,6 +16,7 @@ fn main() {
         fn test() {
             print(test)
             test = 10
+            test2 = .5
         }
     }
     aalsdhfkljasjfhsfadfas().test()

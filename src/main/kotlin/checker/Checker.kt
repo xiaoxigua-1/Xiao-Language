@@ -186,7 +186,17 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
             node.type = when (node.expression) {
                 is Expression.StringExpression -> Type(listOf(), 0, "Str")
-
+                is Expression.NullExpression -> Type(listOf(), 0, "Null")
+                is Expression.BoolExpression -> Type(listOf(), 0, "Bool")
+                is Expression.VariableExpression -> {
+                    val findVar =
+                        findVarOrFunctionOrClass(node.expression.value.literal) { it is Statement.VariableDeclaration }
+                    Type(
+                        listOf(),
+                        0,
+                        (findVar as Statement.VariableDeclaration).type!!.type
+                    )
+                }
                 else -> Type(listOf(), 0, "")
             }
         } else checkerReport += Report.Error(

@@ -130,7 +130,13 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.STRING_LITERAL_TOKEN -> Expression.StringExpression(value)
             TokenType.FLOAT_LITERAL_TOKEN -> Expression.FloatExpression(value)
             TokenType.INTEGER_LITERAL_TOKEN -> Expression.IntExpression(value)
-            else -> Expression.VariableExpression(value)
+            else -> {
+                when (value.literal) {
+                    in listOf("false", "true") -> Expression.BoolExpression(value)
+                    "null" -> Expression.NullExpression(value)
+                    else -> Expression.VariableExpression(value)
+                }
+            }
         }
     }
 

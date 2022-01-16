@@ -43,6 +43,16 @@ sealed class Expression : ASTNode {
         override val position: Position? = value.position
     ) : Expression()
 
+    data class BoolExpression(
+        val value: Token,
+        override val position: Position? = value.position
+    ) : Expression()
+
+    data class NullExpression(
+        val value: Token,
+        override val position: Position? = value.position
+    ) : Expression()
+
     data class GeneratorExpression(
         val value: List<Token>,
         override val position: Position? = null
