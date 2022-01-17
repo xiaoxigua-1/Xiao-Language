@@ -322,15 +322,18 @@ class ParserTest {
     @Test
     fun parserArrayTest() {
         val ast = parserTest("/parserTestData/var/array.xiao")
-
-        ast.map { astNode ->
+        val expectedData = listOf(('1'..'8'), ('a'..'f'), ('a'..'c'))
+        ast.mapIndexed { index, astNode ->
             if (astNode is Statement.VariableDeclaration) {
                 val arrayExpression = astNode.expression[0]
-
+                val arrayValue = expectedData[index].toList()
                 if (arrayExpression is Expression.ArrayExpression) {
-                    arrayExpression.value.mapIndexed { index, expression ->
-                        if (expression is Expression.IntExpression) {
-                            assertEquals((index + 1).toString(), expression.value.literal)
+                    arrayExpression.value.mapIndexed { index2, expression ->
+                        when (expression) {
+                            is Expression.IntExpression -> assertEquals(arrayValue[index2].toString(), expression.value.literal)
+                            is Expression.StringExpression -> assertEquals(arrayValue[index2].toString(), expression.value.literal)
+                            is Expression.ArrayExpression -> println(expression.value)
+                            else -> println(expression)
                         }
                     }
                 }
