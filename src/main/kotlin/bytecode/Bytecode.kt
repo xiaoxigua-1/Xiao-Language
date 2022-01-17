@@ -47,7 +47,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         val mv = cw.visitMethod(
             function?.accessor?.access ?: ACC_PUBLIC,
             function?.functionName?.literal ?: "<init>",
-            "(${function?.parametersDescriptor ?: ""})${function?.returnTypeDescriptor ?: "V"}",
+            "",
             null,
             null
         )

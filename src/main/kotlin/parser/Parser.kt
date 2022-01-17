@@ -346,7 +346,7 @@ class Parser(lex: Lexer, private val file: File) {
         val parameters = mutableListOf<Parameter>()
         val statements = mutableListOf<ASTNode>()
         var colon: Token? = null
-        var returnType: Type? = null
+        var returnType: Type.TypeExpression? = null
         var isComma = false
 
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
@@ -400,7 +400,7 @@ class Parser(lex: Lexer, private val file: File) {
         val variableName = comparison(TokenType.IDENTIFIER_TOKEN)
         var colon: Token? = null
 
-        var variableType: Type? = null
+        var variableType: Type.TypeExpression? = null
 
         if (currently?.tokenType == TokenType.COLON_TOKEN) {
             colon = comparison(TokenType.COLON_TOKEN)
@@ -702,7 +702,7 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**Int[]** or **Int**"
      * @return type data class
      */
-    private fun typeExpression(): Type {
+    private fun typeExpression(): Type.TypeExpression {
         var isLeftSquareBrackets = true
         val typeTokens = mutableListOf(comparison(TokenType.IDENTIFIER_TOKEN))
 
@@ -727,6 +727,6 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
-        return Type(typeTokens, typeTokens[0].literal)
+        return Type.TypeExpression(typeTokens, typeTokens[0].literal)
     }
 }

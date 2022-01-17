@@ -61,32 +61,32 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
      * @return Type data class
      */
     private fun autoType(expression: Expression): Type = when (expression) {
-        is Expression.StringExpression -> Type(listOf(), "Str")
-        is Expression.NullExpression -> Type(listOf(), "Null")
-        is Expression.BoolExpression -> Type(listOf(), "Bool")
+        is Expression.StringExpression -> Type.StrType()
+        is Expression.NullExpression -> Type.NullType()
+        is Expression.BoolExpression -> Type.BoolType()
         is Expression.VariableExpression -> {
             val findVar =
                 findVarOrFunctionOrClass(expression.value.literal) { it is Statement.VariableDeclaration }
-            Type(
+            Type.TypeExpression(
                 listOf(),
-                (findVar as Statement.VariableDeclaration).type!!.type
+                (findVar as Statement.VariableDeclaration).type!!.typeString
             )
         }
         is Expression.CallExpression -> {
             when (val find = findVarOrFunctionOrClass(expression.name.literal) { it is Function || it is Class }) {
-                is Class -> Type(listOf(), find.className.literal)
-                is Function -> Type(listOf(), find.returnType!!.type)
-                else -> Type(listOf(), "")
+                is Class -> Type.TypeExpression(listOf(), find.className.literal)
+                is Function -> Type.TypeExpression(listOf(), find.returnType!!.typeString)
+                else -> Type.TypeExpression(listOf(), "")
             }
         }
         is Expression.ArrayExpression -> {
             val valueTypes = expression.value.map { autoType(it) }
-            val firstType = valueTypes[0].type
+            val firstType = valueTypes[0]
 
             valueTypes.mapIndexed { index, type ->
                 val value = expression.value[index]
-                if (type.type != firstType) checkerReport += Report.Error(
-                    TypeError("${type.type} cannot be converted to $firstType"),
+                if (type != firstType) checkerReport += Report.Error(
+                    TypeError("${type.typeString} cannot be converted to ${firstType.typeString}"),
                     Report.Code(
                         value.position.lineNumber,
                         value.position,
@@ -94,9 +94,13 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     )
                 )
             }
-            Type(listOf(), "List<$firstType>")
+            Type.ListType(type = firstType)
         }
-        else -> Type(listOf(), "")
+        else -> Type.TypeExpression(listOf(), "")
+    }
+
+    private fun typeConvert(expression: Expression, convertType: String) {
+
     }
 
     /**
@@ -272,16 +276,16 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             val autoType = autoType(node.expression[node.expression.size - 1])
             if (node.type == null) node.type = autoType
             else if (autoType != node.type) checkerReport += Report.Error(
-                TypeError("${autoType.type} cannot be converted to ${node.type!!.type}"),
+                TypeError("${autoType.typeString} cannot be converted to ${node.type!!.typeString}"),
                 Report.Code(
-                    node.type!!.typeTokens[0].position.lineNumber,
-                    node.type!!.typeTokens[0].position,
-                    arrowEnd = node.type!!.typeTokens[node.type!!.typeTokens.size - 1].position
+                    (node.type as Type.TypeExpression).tokens[0].position.lineNumber,
+                    (node.type as Type.TypeExpression).tokens[0].position,
+                    arrowEnd = (node.type as Type.TypeExpression).tokens[(node.type as Type.TypeExpression).tokens.size - 1].position
                 ),
                 help = listOf(
                     Report.Help(
                         """
-                        |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType.type} = ${
+                        |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType.typeString} = ${
                             getExpressionsStringList(
                                 node.expression
                             ).joinToString(".")
@@ -318,7 +322,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             val function =
                 hierarchy[layers].find {
                     (it is Function && it.functionName.literal == node.name.literal) ||
-                            (it is Statement.VariableDeclaration && it.type?.type == "function") ||
+                            (it is Statement.VariableDeclaration && it.type?.typeString == "function") ||
                             (it is Class && it.className.literal == node.name.literal)
                 }
 
@@ -383,10 +387,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             )
         )
 
-        val reSetVariableValueType = autoType(node.reSetValue[node.reSetValue.size - 1]).type
+        val reSetVariableValueType = autoType(node.reSetValue[node.reSetValue.size - 1]).typeString
 
-        if (reSetVariableValueType != variable.type?.type) checkerReport += Report.Error(
-            TypeError("${variable.type?.type} cannot be converted to $reSetVariableValueType"),
+        if (reSetVariableValueType != variable.type?.typeString) checkerReport += Report.Error(
+            TypeError("${variable.type?.typeString} cannot be converted to $reSetVariableValueType"),
             Report.Code(
                 node.reSetValue[node.reSetValue.size - 1].position.lineNumber,
                 node.reSetValue[node.reSetValue.size - 1].position
