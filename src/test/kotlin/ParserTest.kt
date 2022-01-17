@@ -315,4 +315,26 @@ class ParserTest {
             }
         }
     }
+
+    /**
+     * The correctness of parse array expression
+     */
+    @Test
+    fun parserArrayTest() {
+        val ast = parserTest("/parserTestData/var/array.xiao")
+
+        ast.map { astNode ->
+            if (astNode is Statement.VariableDeclaration) {
+                val arrayExpression = astNode.expression[0]
+
+                if (arrayExpression is Expression.ArrayExpression) {
+                    arrayExpression.value.mapIndexed { index, expression ->
+                        if (expression is Expression.IntExpression) {
+                            assertEquals((index + 1).toString(), expression.value.literal)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

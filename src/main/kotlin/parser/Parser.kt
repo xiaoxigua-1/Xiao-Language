@@ -109,7 +109,10 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress()
             TokenType.ARROW_TOKEN -> generatorExpress()
             TokenType.EQUAL_TOKEN -> resetVariableExpression()
-            else -> valueExpress()
+            else -> {
+                if (currently?.tokenType == TokenType.LEFT_SQUARE_BRACKETS_TOKEN) arrayExpression()
+                else valueExpress()
+            }
         }
     }
 
@@ -138,6 +141,39 @@ class Parser(lex: Lexer, private val file: File) {
                 }
             }
         }
+    }
+
+    /**
+     * parse array expression
+     * example **[1, 23, 3]**
+     * @return array expression data class
+     */
+    private fun arrayExpression(): Expression.ArrayExpression {
+        val left = comparison(TokenType.LEFT_SQUARE_BRACKETS_TOKEN)
+        val expressions = mutableListOf<Expression>()
+        var comma = false
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_SQUARE_BRACKETS_TOKEN -> break
+                TokenType.COMMA_TOKEN -> {
+                    if (comma) {
+                        comma = false
+                        comparison(TokenType.COMMA_TOKEN)
+                    } else syntaxError(SyntaxError(), currently?.position)
+                }
+                else -> {
+                    if (!comma) {
+                        expressions += expression()
+                        comma = true
+                    } else syntaxError(SyntaxError(), currently?.position)
+                }
+            }
+        }
+
+        val right = comparison(TokenType.RIGHT_SQUARE_BRACKETS_TOKEN)
+
+        return Expression.ArrayExpression(left, right, expressions)
     }
 
     /**
@@ -203,6 +239,7 @@ class Parser(lex: Lexer, private val file: File) {
             Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
             Keyword.RETURN_KEYWORD.keyword -> returnStatementExpression()
             Keyword.FOR_KEYWORD.keyword -> forLoopStatementExpression()
+            Keyword.WHILE_KEYWORD.keyword -> whileLoopStatementExpression()
             else -> Statement.ExpressionStatement(path())
         }
     }

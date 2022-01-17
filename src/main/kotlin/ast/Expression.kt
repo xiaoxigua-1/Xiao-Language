@@ -57,4 +57,11 @@ sealed class Expression : ASTNode {
         val value: List<Token>,
         override val position: Position = value[0].position
     ) : Expression()
+
+    data class ArrayExpression(
+        val left: Token,
+        val right: Token,
+        val value: List<Expression>,
+        override val position: Position = left.position
+    ) : Expression()
 }
