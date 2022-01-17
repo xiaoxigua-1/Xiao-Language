@@ -108,7 +108,7 @@ class Parser(lex: Lexer, private val file: File) {
             TokenType.MORE_TOKEN,
             TokenType.LESS_TOKEN -> if (!isValue) operatorExpression() else valueExpress()
             TokenType.ARROW_TOKEN -> generatorExpress()
-            TokenType.EQUAL_TOKEN -> reSetVariableExpression()
+            TokenType.EQUAL_TOKEN -> resetVariableExpression()
             else -> valueExpress()
         }
     }
@@ -167,7 +167,12 @@ class Parser(lex: Lexer, private val file: File) {
         return Expression.GeneratorExpression(value)
     }
 
-    private fun reSetVariableExpression(): Expression.ResetVariableExpression {
+    /**
+     * parse reset variable value expression
+     * example "**a = 10**"
+     * @return ResetVariableExpression data class
+     */
+    private fun resetVariableExpression(): Expression.ResetVariableExpression {
         val variableToken = comparison(TokenType.IDENTIFIER_TOKEN)
         comparison(TokenType.EQUAL_TOKEN)
 
@@ -197,7 +202,7 @@ class Parser(lex: Lexer, private val file: File) {
             Keyword.VARIABLE_KEYWORD.keyword -> variableDeclarationExpression()
             Keyword.IF_KEYWORD.keyword -> ifStatementExpression()
             Keyword.RETURN_KEYWORD.keyword -> returnStatementExpression()
-            Keyword.FOR_KEYWORD.keyword -> forStatementExpression()
+            Keyword.FOR_KEYWORD.keyword -> forLoopStatementExpression()
             else -> Statement.ExpressionStatement(path())
         }
     }
@@ -481,7 +486,7 @@ class Parser(lex: Lexer, private val file: File) {
      * example "**for(...){...}**"
      * @return for statement data class
      */
-    private fun forStatementExpression(): Statement.ForStatement {
+    private fun forLoopStatementExpression(): Statement.ForLoopStatement {
         val forKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
 
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
@@ -506,7 +511,36 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
-        return Statement.ForStatement(forKeyword, variable, inKeyword, expression, statements)
+        return Statement.ForLoopStatement(forKeyword, variable, inKeyword, expression, statements)
+    }
+
+    /**
+     * parse for statement
+     * example "**while(...){...}**"
+     * @return while loop statement data class
+     */
+    private fun whileLoopStatementExpression(): Statement.WhileLoopStatement {
+        val whileKeyword = comparison(TokenType.IDENTIFIER_TOKEN)
+        val statements = mutableListOf<Statement>()
+
+        comparison(TokenType.LEFT_PARENTHESES_TOKEN)
+
+        val expression = expression()
+
+        comparison(TokenType.RIGHT_PARENTHESES_TOKEN)
+        comparison(TokenType.LEFT_CURLY_BRACKETS_TOKEN)
+
+        while (!isEOFToken) {
+            when (currently?.tokenType) {
+                TokenType.RIGHT_CURLY_BRACKETS_TOKEN -> {
+                    comparison(TokenType.RIGHT_CURLY_BRACKETS_TOKEN)
+                    break
+                }
+                else -> statements += statementsExpression()
+            }
+        }
+
+        return Statement.WhileLoopStatement(whileKeyword, expression, statements)
     }
 
     /**

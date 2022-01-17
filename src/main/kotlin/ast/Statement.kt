@@ -15,7 +15,7 @@ sealed class Statement : ASTNode {
         val expression: List<Expression>,
         var findId: Int? = null,
         override val position: Position = variableName.position
-    ): Statement()
+    ) : Statement()
 
     data class ExpressionStatement(
         val expression: List<Expression>,
@@ -44,12 +44,17 @@ sealed class Statement : ASTNode {
         val statements: List<Statement>
     )
 
-    data class ForStatement(
+    data class ForLoopStatement(
         val forKeyword: Token,
         val variable: Token,
         val inKeyword: Token,
         val expression: Expression,
         val statements: List<Statement>,
         override val position: Position? = forKeyword.position
+    ) : Statement()
+
+    data class WhileLoopStatement(
+        val whileKeyword: Token, val conditional: Expression, val statements: List<Statement>,
+        override val position: Position? = whileKeyword.position
     ) : Statement()
 }
