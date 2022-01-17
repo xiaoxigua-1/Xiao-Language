@@ -61,26 +61,42 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
      * @return Type data class
      */
     private fun autoType(expression: Expression): Type = when (expression) {
-        is Expression.StringExpression -> Type(listOf(), 0, "Str")
-        is Expression.NullExpression -> Type(listOf(), 0, "Null")
-        is Expression.BoolExpression -> Type(listOf(), 0, "Bool")
+        is Expression.StringExpression -> Type(listOf(), "Str")
+        is Expression.NullExpression -> Type(listOf(), "Null")
+        is Expression.BoolExpression -> Type(listOf(), "Bool")
         is Expression.VariableExpression -> {
             val findVar =
                 findVarOrFunctionOrClass(expression.value.literal) { it is Statement.VariableDeclaration }
             Type(
                 listOf(),
-                0,
                 (findVar as Statement.VariableDeclaration).type!!.type
             )
         }
         is Expression.CallExpression -> {
             when (val find = findVarOrFunctionOrClass(expression.name.literal) { it is Function || it is Class }) {
-                is Class -> Type(listOf(), 0, find.className.literal)
-                is Function -> Type(listOf(), 0, find.returnType!!.type)
-                else -> Type(listOf(), 0, "")
+                is Class -> Type(listOf(), find.className.literal)
+                is Function -> Type(listOf(), find.returnType!!.type)
+                else -> Type(listOf(), "")
             }
         }
-        else -> Type(listOf(), 0, "")
+        is Expression.ArrayExpression -> {
+            val valueTypes = expression.value.map { autoType(it) }
+            val firstType = valueTypes[0].type
+
+            valueTypes.mapIndexed { index, type ->
+                val value = expression.value[index]
+                if (type.type != firstType) checkerReport += Report.Error(
+                    TypeError("${type.type} cannot be converted to $firstType"),
+                    Report.Code(
+                        value.position.lineNumber,
+                        value.position,
+                        arrowEnd = if (value is Expression.ArrayExpression) value.right.position else value.position
+                    )
+                )
+            }
+            Type(listOf(), "List<$firstType>")
+        }
+        else -> Type(listOf(), "")
     }
 
     /**

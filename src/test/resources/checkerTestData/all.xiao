@@ -2,5 +2,5 @@ im module.module
 im xiao.Math
 
 fn main() {
-    var a: Int = 10
+    var a = [["a"], [true, "3", [null, null]]]
 }

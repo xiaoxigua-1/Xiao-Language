@@ -705,14 +705,12 @@ class Parser(lex: Lexer, private val file: File) {
     private fun typeExpression(): Type {
         var isLeftSquareBrackets = true
         val typeTokens = mutableListOf(comparison(TokenType.IDENTIFIER_TOKEN))
-        var array = 0
 
         while (!isEOFToken) {
             when (currently?.tokenType) {
                 TokenType.LEFT_SQUARE_BRACKETS_TOKEN -> {
                     if (isLeftSquareBrackets) {
                         typeTokens += comparison(TokenType.LEFT_SQUARE_BRACKETS_TOKEN)
-                        array++
                         isLeftSquareBrackets = false
                     } else syntaxError(SyntaxError(), currently?.position)
                 }
@@ -729,6 +727,6 @@ class Parser(lex: Lexer, private val file: File) {
             }
         }
 
-        return Type(typeTokens, array, typeTokens[0].literal)
+        return Type(typeTokens, typeTokens[0].literal)
     }
 }
