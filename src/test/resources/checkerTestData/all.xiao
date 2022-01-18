@@ -2,5 +2,12 @@ im module.module
 im xiao.Math
 
 fn main() {
-    var a = [["a"], [true, "3", [null, null]]]
+    var a = [
+        ["a"], [
+            true,
+            "3",
+            [null, null]
+        ]
+    ]
+    var b: Bool = "null"
 }

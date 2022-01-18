@@ -39,20 +39,33 @@ sealed class Report {
     data class Code(
         val startLine: Int,
         val arrowStart: Position,
-        val endLine: Int = startLine,
-        val arrowEnd: Position = arrowStart
+        val arrowEnd: Position = arrowStart,
+        val endLine: Int = arrowEnd.lineNumber,
     ) {
         fun output(source: List<String>): String {
             var outputText = ""
             for (lineNumber in startLine..endLine) {
-                val code = source[lineNumber].trimIndent()
-                val arrow = source[lineNumber].length - code.length
-                val arrowLength = arrowEnd.end - arrowStart.start
+                val code = source[lineNumber]
+                val indentSpace = code.length - source[lineNumber].trimIndent().length
                 outputText += "${lineNumber + 1}".padStart(7) + "| $code\n"
-                if (lineNumber == arrowStart.lineNumber) outputText += (0..arrowStart.start - arrow + 8).joinToString("") { " " } +
-                        (0..arrowLength).joinToString(
-                    ""
-                ) { "^" } + if (lineNumber != endLine) "\n" else ""
+                if (lineNumber >= arrowStart.lineNumber && lineNumber <= arrowEnd.lineNumber) {
+                    outputText += (0..6).joinToString("") { " " } + "| "
+                    code.mapIndexed { index, _ ->
+                        outputText += if (
+                            arrowEnd.lineNumber == arrowStart.lineNumber &&
+                            index <= arrowEnd.end &&
+                            index >= arrowStart.start
+                        ) "^"
+                        else if (arrowEnd.lineNumber != arrowStart.lineNumber &&
+                            ((lineNumber == startLine && arrowStart.start <= index) ||
+                                    (lineNumber == endLine && arrowEnd.end >= index && index >= indentSpace))
+                        ) "^"
+                        else if (lineNumber in (startLine + 1) until endLine && index >= indentSpace) "^"
+                        else " "
+                    }
+                    outputText += if (lineNumber != endLine) "\n" else ""
+                }
+
             }
 
             return outputText
@@ -74,8 +87,8 @@ sealed class Report {
             """
             |${Color.valueOf(level).asciiColor}$exceptionName: ${exception.message} ${Color.End.asciiColor}
             |   $path:${code!!.arrowStart.lineNumber + 1}:${code!!.arrowStart.start}
-            |${code!!.output(source)}
-            """.trimMargin() + (
+            |
+            """.trimMargin() + code!!.output(source) + (
                     help?.joinToString("\n") {
                         "\n   help: ${it.helpHintString}" +
                                 it.output()

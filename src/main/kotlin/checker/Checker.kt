@@ -112,7 +112,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 is Expression.IntExpression -> it.value.literal
                 is Expression.CallExpression -> "${it.name.literal}(${getExpressionsStringList(it.args).joinToString(", ")})"
                 is Expression.BoolExpression -> it.value.literal
-                is Expression.StringExpression -> it.value.literal
+                is Expression.StringExpression -> "\"${it.value.literal}\""
                 is Expression.FloatExpression -> it.value.literal
                 is Expression.NullExpression -> it.value.literal
                 is Expression.VariableExpression -> it.value.literal
@@ -180,7 +180,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 Report.Code(
                     node.importKeyword.position.lineNumber,
                     node.path[0].position,
-                    arrowEnd = node.path[node.path.size - 1].position
+                    node.path[node.path.size - 1].position
                 )
             )
             else {
