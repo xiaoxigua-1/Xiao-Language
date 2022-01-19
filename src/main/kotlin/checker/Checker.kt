@@ -138,11 +138,23 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     /**
      * Check expression correctness
      */
-    private fun checkExpress(node: Expression): Expression = when (node) {
-        is Expression.CallExpression -> checkCallFunction(node)
-        is Expression.ResetVariableExpression -> checkResetVariableValue(node)
+    private fun checkExpress(node: Expression, fnOrClassOrVariable: List<ASTNode>? = null): Expression = when (node) {
+        is Expression.CallExpression -> checkCallExpression(node, fnOrClassOrVariable).first
+        is Expression.ResetVariableExpression -> checkResetVariableValue(node, fnOrClassOrVariable)
         else -> node
     }
+
+    private fun checkCallExpression(
+        node: Expression.CallExpression,
+        fnOrClassList: List<ASTNode>? = null
+    ): Pair<Expression.CallExpression, ASTNode> =
+        when (val find =
+            fnOrClassList?.find { it is Class && it.className.literal == node.name.literal || it is Function && it.functionName.literal == node.name.literal }
+                ?: findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class }) {
+            is Function -> node to checkCallFunction(node, find)
+            is Class -> node to find
+            else -> node to node
+        }
 
     /**
      * Check statement correctness
@@ -308,6 +320,30 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
         if (expressions.size == 1) {
             checkExpress(expressions[0])
+        } else {
+            var returnValue: Expression? = null
+            for (expression in expressions) {
+                if (returnValue != null) {
+                    when (returnValue) {
+                        is Expression.CallExpression -> {
+                            when (val check = checkCallExpression(returnValue).second) {
+                                is Class -> when (val checkExpress = checkExpress(expression, check.functions)) {
+                                    is Expression.CallExpression -> checkCallFunction(
+                                        checkExpress,
+                                        check.functions.find { it.functionName.literal == checkExpress.name.literal }
+                                    )
+                                }
+                                is Function -> when (val checkExpression = checkExpress(expression)) {
+
+                                }
+                                else -> {println(check)}
+                            }
+                        }
+                        else -> {}
+                    }
+
+                } else returnValue = checkExpress(expression)
+            }
         }
 
         return node
@@ -317,51 +353,32 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
      * Check call function correctness
      */
     private fun checkCallFunction(
-        node: Expression.CallExpression
+        node: Expression.CallExpression,
+        function: Function?
     ): Expression.CallExpression {
-        for (layers in (hierarchy.size - 1) downTo 0) {
-            val function =
-                hierarchy[layers].find {
-                    (it is Function && it.functionName.literal == node.name.literal) ||
-                            (it is Statement.VariableDeclaration && it.type?.typeString == "function") ||
-                            (it is Class && it.className.literal == node.name.literal)
-                }
+        if (function != null) {
+            val parameters = function.parameters
 
-            if (function != null) {
-                val parameters = when (function) {
-                    is Function -> function.parameters
-//                    is Statement.VariableDeclaration -> {
-//                        val expression = function.expression as Expression.VariableExpression
-//                        (findVarOrFunctionOrClass(expression.value.literal, Function::class.java) as Function).parameters
-//                    }
-                    else -> listOf()
-                }
-
-                if (parameters.size != node.args.size) {
-                    checkerReport += if (parameters.size - node.args.size > 0) {
-                        val missing = parameters.size - node.args.size
-                        Report.Error(
-                            TypeError(
-                                "${node.name.literal}() missing $missing required positional arguments: " +
-                                        parameters.filterIndexed { index, _ ->
-                                            index > parameters.size - missing - 1
-                                        }.joinToString(" and ") { it.name.literal }
-                            ),
-                            Report.Code(node.name.position.lineNumber, node.name.position)
-                        )
-                    } else Report.Error(
-                        TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
+            if (parameters.size != node.args.size) {
+                checkerReport += if (parameters.size - node.args.size > 0) {
+                    val missing = parameters.size - node.args.size
+                    Report.Error(
+                        TypeError(
+                            "${node.name.literal}() missing $missing required positional arguments: " +
+                                    parameters.filterIndexed { index, _ ->
+                                        index > parameters.size - missing - 1
+                                    }.joinToString(" and ") { it.name.literal }
+                        ),
                         Report.Code(node.name.position.lineNumber, node.name.position)
                     )
-                } else {
-                    // TODO check type
-                }
-
-                return node
+                } else Report.Error(
+                    TypeError("take ${parameters.size} positional arguments but ${node.args.size} were given"),
+                    Report.Code(node.name.position.lineNumber, node.name.position)
+                )
+            } else {
+                // TODO check type
             }
-        }
-
-        checkerReport += Report.Error(
+        } else checkerReport += Report.Error(
             NameError("name '${node.name.literal}' function is not defined"),
             Report.Code(node.name.position.lineNumber, node.name.position)
         )
@@ -372,9 +389,12 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     /**
      * Check reset variable value correctness
      */
-    private fun checkResetVariableValue(node: Expression.ResetVariableExpression): Expression.ResetVariableExpression {
-        val variable =
-            findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration } as Statement.VariableDeclaration
+    private fun checkResetVariableValue(
+        node: Expression.ResetVariableExpression,
+        variableList: List<ASTNode>? = null
+    ): Expression.ResetVariableExpression {
+        val variable = (variableList?.find { it is Statement.VariableDeclaration && it.variableName.literal == node.variableName.literal }
+            ?: findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration }) as Statement.VariableDeclaration
         if (variable.mutKeyword == null) checkerReport += Report.Error(
             TypeError("Cannot assign twice to immutable variable"),
             Report.Code(node.variableName.position.lineNumber, node.variableName.position),

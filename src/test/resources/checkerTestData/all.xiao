@@ -1,6 +1,12 @@
 im module.module
 im xiao.Math
 
+class A {
+    fn a() {
+
+    }
+}
+
 fn main() {
     var a = [
         ["a"], [
@@ -10,4 +16,5 @@ fn main() {
         ]
     ]
     var b: Bool = "null"
+    A().a()
 }
