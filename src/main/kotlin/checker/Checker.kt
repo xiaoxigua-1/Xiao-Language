@@ -46,6 +46,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     is Function -> it.functionName.literal == name && judgmental(it)
                     is Class -> it.className.literal == name && judgmental(it)
                     is Statement.VariableDeclaration -> it.variableName.literal == name && judgmental(it)
+                    is Check.ImportFileValue -> it.moduleName == name && judgmental(it)
                     else -> false
                 }
             }
@@ -54,6 +55,18 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
 
         return data.maxWithOrNull(compareBy { it.priority })?.info
+    }
+
+    private fun findVarOrFunctionOrClass(
+        name: String,
+        local: List<ASTNode>,
+        judgmental: (ASTNode) -> Boolean
+    ): ASTNode? {
+        return local.find {
+            (it is Function && it.functionName.literal == name ||
+                    it is Class && it.className.literal == name ||
+                    it is Expression.VariableExpression && it.value.literal == name) && judgmental(it)
+        }
     }
 
     /**
@@ -138,23 +151,29 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     /**
      * Check expression correctness
      */
-    private fun checkExpress(node: Expression, fnOrClassOrVariable: List<ASTNode>? = null): Expression = when (node) {
-        is Expression.CallExpression -> checkCallExpression(node, fnOrClassOrVariable).first
-        is Expression.ResetVariableExpression -> checkResetVariableValue(node, fnOrClassOrVariable)
+    private fun checkExpress(node: Expression, local: List<ASTNode>? = null): Expression = when (node) {
+        is Expression.CallExpression -> checkCallExpression(node, local).first
+        is Expression.ResetVariableExpression -> checkResetVariableValue(node, local)
         else -> node
     }
 
     private fun checkCallExpression(
         node: Expression.CallExpression,
-        fnOrClassList: List<ASTNode>? = null
-    ): Pair<Expression.CallExpression, ASTNode> =
-        when (val find =
-            fnOrClassList?.find { it is Class && it.className.literal == node.name.literal || it is Function && it.functionName.literal == node.name.literal }
-                ?: findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class }) {
-            is Function -> node to checkCallFunction(node, find)
-            is Class -> node to find
-            else -> node to node
+        local: List<ASTNode>? = null
+    ): Pair<Expression.CallExpression, ASTNode> = when (val find =
+        local?.find { it is Class && it.className.literal == node.name.literal || it is Function && it.functionName.literal == node.name.literal }
+            ?: findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class }) {
+        is Function -> node to checkCallFunction(node, find)
+        is Class -> node to find
+        else -> {
+            checkerReport += Report.Error(
+                NameError("name '${node.name.literal}' is not defined"),
+                Report.Code(node.name.position.lineNumber, node.name.position)
+            )
+            node to node
         }
+    }
+
 
     /**
      * Check statement correctness
@@ -196,15 +215,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     node.path[node.path.size - 1].position
                 )
             )
-            else {
-                val (ast, value) = Compiler(file).compile()
-                hierarchy[0] += Check.ImportFileValue(
-                    node.path[node.path.size - 1].literal,
-                    value.filterIsInstance<Function>()
-                )
-                asts[path] = ast[file.nameWithoutExtension]!!
-            }
         }
+
+        val (ast, value) = Compiler(file).compile()
+        hierarchy[0] += Check.ImportFileValue(
+            node.path[node.path.size - 1].literal,
+            value.filter { it !is Import }
+        )
+        asts[path] = ast[file.nameWithoutExtension]!!
     }
 
     /**
@@ -321,22 +339,29 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         if (expressions.size == 1) {
             checkExpress(expressions[0])
         } else {
-            var returnValue: Expression? = null
+            var returnValue: ASTNode? = null
             for (expression in expressions) {
                 if (returnValue != null) {
                     when (returnValue) {
                         is Expression.CallExpression -> {
                             when (val check = checkCallExpression(returnValue).second) {
-                                is Class -> when (val checkExpress = checkExpress(expression, check.functions)) {
-                                    is Expression.CallExpression -> checkCallFunction(
-                                        checkExpress,
-                                        check.functions.find { it.functionName.literal == checkExpress.name.literal }
-                                    )
-                                }
-                                is Function -> when (val checkExpression = checkExpress(expression)) {
+                                is Class -> returnValue = checkExpress(expression, check.functions + check.variables)
+                                is Function -> {
 
                                 }
-                                else -> {println(check)}
+                                else -> {}
+                            }
+                        }
+                        is Expression.VariableExpression -> {
+                            when (val find =
+                                findVarOrFunctionOrClass(returnValue.value.literal) { it is Check.ImportFileValue || it is Statement.VariableDeclaration }) {
+                                is Check.ImportFileValue -> {
+                                    checkExpress(expression, find.value)
+                                    returnValue = if (expression is Expression.CallExpression)
+                                        findVarOrFunctionOrClass(expression.name.literal, find.value) { true }
+                                    else expression
+                                }
+                                else -> {}
                             }
                         }
                         else -> {}
@@ -391,10 +416,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
      */
     private fun checkResetVariableValue(
         node: Expression.ResetVariableExpression,
-        variableList: List<ASTNode>? = null
+        local: List<ASTNode>? = null
     ): Expression.ResetVariableExpression {
-        val variable = (variableList?.find { it is Statement.VariableDeclaration && it.variableName.literal == node.variableName.literal }
-            ?: findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration }) as Statement.VariableDeclaration
+        val variable =
+            (local?.find { it is Statement.VariableDeclaration && it.variableName.literal == node.variableName.literal }
+                ?: findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration }) as Statement.VariableDeclaration
         if (variable.mutKeyword == null) checkerReport += Report.Error(
             TypeError("Cannot assign twice to immutable variable"),
             Report.Code(node.variableName.position.lineNumber, node.variableName.position),

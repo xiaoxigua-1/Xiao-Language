@@ -1,20 +1,13 @@
 im module.module
-im xiao.Math
 
 class A {
-    fn a() {
+    fn abc() {
 
     }
 }
 
+
 fn main() {
-    var a = [
-        ["a"], [
-            true,
-            "3",
-            [null, null]
-        ]
-    ]
-    var b: Bool = "null"
-    A().a()
+    A().abc()
+    module.B().abc()
 }
