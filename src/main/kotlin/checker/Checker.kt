@@ -88,9 +88,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 if (type != firstType) checkerReport += Report.Error(
                     TypeError("${type.typeString} cannot be converted to ${firstType.typeString}"),
                     Report.Code(
-                        value.position.lineNumber,
+                        expression.left.position.lineNumber,
                         value.position,
-                        arrowEnd = if (value is Expression.ArrayExpression) value.right.position else value.position
+                        if (value is Expression.ArrayExpression) value.right.position else value.position,
+                        expression.right.position.lineNumber
                     )
                 )
             }
