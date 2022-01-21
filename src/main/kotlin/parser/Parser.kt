@@ -599,7 +599,7 @@ class Parser(lex: Lexer, private val file: File) {
      */
     private fun callFunction(): Expression.CallExpression {
         val functionName = comparison(TokenType.IDENTIFIER_TOKEN)
-        val args = mutableListOf<Expression>()
+        val args = mutableListOf<List<Expression>>()
         var isComma = false
 
         comparison(TokenType.LEFT_PARENTHESES_TOKEN)
@@ -617,7 +617,7 @@ class Parser(lex: Lexer, private val file: File) {
                 }
                 else -> {
                     if (isComma) syntaxError(SyntaxError(), currently?.position)
-                    args += expression()
+                    args += path()
                     isComma = true
                 }
             }

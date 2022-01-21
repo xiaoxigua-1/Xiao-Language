@@ -1,3 +1,4 @@
+
 im module.module
 
 class A {
@@ -6,8 +7,6 @@ class A {
     }
 }
 
-
-fn main() {
-    A().abc()
-    module.B().abc()
+fn main(args: Str[]) {
+    A().abc().cc()
 }

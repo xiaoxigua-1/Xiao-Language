@@ -20,8 +20,11 @@ enum class TokenType {
     EQUAL_TOKEN,
     DOT_TOKEN,
     DOUBLE_EQUAL_TOKEN,
-    EOF,
     LESS_TOKEN,
     MORE_TOKEN,
-    ARROW_TOKEN
+    /**
+     * Represents an arrow, `->`
+     */
+    ARROW_TOKEN,
+    EOF
 }

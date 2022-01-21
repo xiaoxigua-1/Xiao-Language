@@ -8,7 +8,7 @@ sealed class Expression : ASTNode {
 
     data class CallExpression(
         val name: Token,
-        val args: List<Expression>,
+        val args: List<List<Expression>>,
         override val position: Position = name.position
     ) : Expression()
 
