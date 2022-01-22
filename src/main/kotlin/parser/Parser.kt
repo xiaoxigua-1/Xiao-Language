@@ -137,7 +137,7 @@ class Parser(lex: Lexer, private val file: File) {
                 when (value.literal) {
                     in listOf("false", "true") -> Expression.BoolExpression(value)
                     "null" -> Expression.NullExpression(value)
-                    else -> Expression.VariableExpression(value)
+                    else -> Expression.VariableValueExpression(value)
                 }
             }
         }

@@ -11,6 +11,4 @@ data class Function(
     val returnType: Type.TypeExpression?,
     val statements: List<ASTNode>,
     val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
-) : ASTNode {
-
-}
+) : ASTNode

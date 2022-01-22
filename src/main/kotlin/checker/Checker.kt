@@ -9,14 +9,15 @@ import java.io.File
 import java.util.*
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
-    private val stdPath = ""
+    private val stdLibraryPath = ""
+    private val builtInLibraryPath = this::class.java.getResource("/library")!!.path
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
     private val hierarchy = mutableListOf<MutableList<ASTNode>>(mutableListOf())
 
     fun check(): CheckReturnData {
         val checkAST = mutableListOf<ASTNode>()
-
+        if (!mainFile.path.startsWith(builtInLibraryPath)) hierarchy[0] += builtIn()
         for (node in ast) {
             if (node is Import) {
                 checkImport(node)
@@ -30,6 +31,21 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         asts[mainFile.nameWithoutExtension] = checkAST
 
         return CheckReturnData(asts, checkerReport, hierarchy[0])
+    }
+
+    private fun builtIn(): MutableList<ASTNode> {
+        val builtInAST = mutableListOf<ASTNode>()
+        val folder = File(builtInLibraryPath)
+
+        folder.walk().forEach {
+            if (it.isFile) {
+                val (_, value) = Compiler(it.absoluteFile).compile()
+
+                builtInAST += value
+            }
+        }
+
+        return builtInAST
     }
 
     /**
@@ -66,7 +82,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return local.find {
             (it is Function && it.functionName.literal == name ||
                     it is Class && it.className.literal == name ||
-                    it is Expression.VariableExpression && it.value.literal == name) && judgmental(it)
+                    it is Expression.VariableValueExpression && it.value.literal == name) && judgmental(it)
         }
     }
 
@@ -78,7 +94,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         is Expression.StringExpression -> Type.StrType()
         is Expression.NullExpression -> Type.NullType()
         is Expression.BoolExpression -> Type.BoolType()
-        is Expression.VariableExpression -> {
+        is Expression.VariableValueExpression -> {
             val findVar =
                 findVarOrFunctionOrClass(expression.value.literal) { it is Statement.VariableDeclaration }
             Type.TypeExpression(
@@ -137,7 +153,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 is Expression.StringExpression -> "\"${it.value.literal}\""
                 is Expression.FloatExpression -> it.value.literal
                 is Expression.NullExpression -> it.value.literal
-                is Expression.VariableExpression -> it.value.literal
+                is Expression.VariableValueExpression -> it.value.literal
                 else -> ""
             }
         }
@@ -162,7 +178,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private fun checkExpress(node: Expression, local: List<ASTNode>? = null): Expression = when (node) {
         is Expression.CallExpression -> checkCallExpression(node, local).first
         is Expression.ResetVariableExpression -> checkResetVariableValue(node, local)
-        is Expression.VariableExpression -> checkVariableExpression(node, local)
+        is Expression.VariableValueExpression -> checkVariableValueExpression(node, local)
         else -> node
     }
 
@@ -213,7 +229,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         var file = File("${mainFile.absoluteFile.parent}/$path.xiao")
 
         if (!file.exists()) {
-            file = File("$stdPath/$path.xiao")
+            file = File("$stdLibraryPath/$path.xiao")
 
             if (!file.exists()) checkerReport += Report.Error(
                 ModuleNotFoundError("No module named '${node.path.joinToString(".") { it.literal }}'"),
@@ -314,8 +330,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
             val autoType = autoType(node.expression[node.expression.size - 1])
+
             if (node.type == null) node.type = autoType
-            else if (autoType != node.type) checkerReport += Report.Error(
+            else if (autoType.typeString != node.type!!.typeString) checkerReport += Report.Error(
                 TypeError("${autoType.typeString} cannot be converted to ${node.type!!.typeString}"),
                 Report.Code(
                     (node.type as Type.TypeExpression).tokens[0].position.lineNumber,
@@ -364,12 +381,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                                     else expression
                                 }
                                 is Function -> {
+//                                    findVarOrFunctionOrClass(check.returnType?.typeString) { it }
+                                    checkExpress(expression)
                                     // TODO check function return
                                 }
                                 else -> {}
                             }
                         }
-                        is Expression.VariableExpression -> when (val find =
+                        is Expression.VariableValueExpression -> when (val find =
                             findVarOrFunctionOrClass(returnValue.value.literal) {
                                 it is Check.ImportFileValue ||
                                         it is Statement.VariableDeclaration || it is Check.ParameterValue
@@ -381,17 +400,29 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                                 else expression
                             }
                             is Check.ParameterValue, is Statement.VariableDeclaration -> checkerReport += Report.Error(
-                                TypeError("name '${when (expression) {
-                                    is Expression.VariableExpression -> expression.value.literal
-                                    is Expression.CallExpression -> expression.name.literal
-                                    else -> ""
-                                }}' is not defined"),
+                                TypeError(
+                                    "name '${
+                                        when (expression) {
+                                            is Expression.VariableValueExpression -> expression.value.literal
+                                            is Expression.CallExpression -> expression.name.literal
+                                            else -> ""
+                                        }
+                                    }' is not defined"
+                                ),
                                 Report.Code(
                                     expression.position.lineNumber,
                                     expression.position
                                 )
                             )
                             else -> {}
+                        }
+                        is Expression.StringExpression,
+                        is Expression.NullExpression,
+                        is Expression.BoolExpression,
+                        is Expression.IntExpression,
+                        is Expression.FloatExpression -> {
+                            returnValue as Expression
+                            findVarOrFunctionOrClass(getExpressionsStringList(listOf(returnValue))[0]) { it is Class }
                         }
                         else -> {}
                     }
@@ -440,10 +471,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
-    private fun checkVariableExpression(
-        node: Expression.VariableExpression,
+    private fun checkVariableValueExpression(
+        node: Expression.VariableValueExpression,
         local: List<ASTNode>? = null
-    ): Expression.VariableExpression {
+    ): Expression.VariableValueExpression {
         val find =
             local?.find { it is Check.ParameterValue && it.variableName == node.value.literal || it is Statement.VariableDeclaration && it.variableName.literal == node.value.literal }
                 ?: findVarOrFunctionOrClass(node.value.literal) { it is Check.ParameterValue || it is Statement.VariableDeclaration }

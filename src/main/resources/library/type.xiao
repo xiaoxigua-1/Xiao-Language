@@ -1,0 +1,13 @@
+class Str {
+    fn toInt() {
+
+    }
+}
+
+class Null {
+
+}
+
+class Bool {
+
+}

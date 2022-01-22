@@ -8,5 +8,5 @@ class A {
 }
 
 fn main(args: Str[]) {
-    A().abc().cc()
+    Str().toInt()
 }

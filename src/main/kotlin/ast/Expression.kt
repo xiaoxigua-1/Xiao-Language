@@ -23,7 +23,7 @@ sealed class Expression : ASTNode {
         override val position: Position = operator.operator.position
     ) : Expression()
 
-    data class VariableExpression(
+    data class VariableValueExpression(
         val value: Token,
         override val position: Position = value.position
     ) : Expression()

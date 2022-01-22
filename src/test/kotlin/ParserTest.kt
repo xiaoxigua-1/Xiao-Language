@@ -245,7 +245,7 @@ class ParserTest {
             astNode.expression.mapIndexed { index2, expression ->
                 if (expression is Expression.CallExpression) {
                     assertEquals(expectedData[index].names[index2], expression.name.literal)
-                } else if (expression is Expression.VariableExpression) {
+                } else if (expression is Expression.VariableValueExpression) {
                     assertEquals(expectedData[index].names[index2], expression.value.literal)
                 }
             }
@@ -268,7 +268,7 @@ class ParserTest {
                     expectedData[index],
                     expression.name.literal
                 )
-                is Expression.VariableExpression -> assertEquals(expectedData[index], expression.value.literal)
+                is Expression.VariableValueExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.IntExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.FloatExpression -> assertEquals(expectedData[index], expression.value.literal)
                 is Expression.StringExpression -> assertEquals(expectedData[index], expression.value.literal)
