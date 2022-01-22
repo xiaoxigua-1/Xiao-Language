@@ -16,8 +16,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     private val hierarchy = mutableListOf<MutableList<ASTNode>>(mutableListOf())
 
     fun check(): CheckReturnData {
-        val checkAST = mutableListOf<ASTNode>()
         if (!mainFile.path.startsWith(builtInLibraryPath)) hierarchy[0] += builtIn()
+
+        val checkAST = mutableListOf<ASTNode>()
+
         for (node in ast) {
             if (node is Import) {
                 checkImport(node)
