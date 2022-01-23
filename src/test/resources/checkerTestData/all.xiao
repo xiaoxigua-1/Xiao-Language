@@ -1,4 +1,3 @@
-
 im module.module
 
 class A {
@@ -11,4 +10,5 @@ class A {
 fn main(args: Str[]) {
     "".toInta()
     A().abc.toInt()
+    B().abc().toInt()
 }

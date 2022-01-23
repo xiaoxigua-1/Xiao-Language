@@ -202,7 +202,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Pair<Expression.CallExpression, ASTNode> = when (val find =
         local?.find { it is Class && it.className.literal == node.name.literal || it is Function && it.functionName.literal == node.name.literal }
             ?: findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class }) {
-        is Function -> node to checkCallFunction(node, find)
+        is Function -> {
+            checkCallFunction(node, find)
+            node to find
+        }
         is Class -> node to find
         else -> {
             checkerReport += Report.Error(
@@ -256,10 +259,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
 
         val (ast, value) = Compiler(file).compile()
-        hierarchy[0] += Check.ImportFileValue(
-            node.path[node.path.size - 1].literal,
-            value.filter { it !is Import }
-        )
+        hierarchy[0] += value
         asts[path] = ast[file.nameWithoutExtension]!!
     }
 
@@ -387,6 +387,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         is Class -> returnValue
                         is Function -> {
                             // TODO return type
+                            println(returnValue.returnType!!.typeString)
                             findVarOrFunctionOrClass(returnValue.returnType!!.typeString) { it is Class } as Class
                         }
                         is Statement.VariableDeclaration -> {
@@ -415,7 +416,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         is Expression.NullExpression -> findVarOrFunctionOrClass(autoType(expression).typeString) { it is Class }
                         else -> {
                             checkerReport += Report.Error(
-                                NameError("name '${getExpressionsStringList(listOf(expression))[0]}' is not defined"),
+                                NameError("name '${getExpressionString(expression)}' is not defined"),
                                 Report.Code(expression.position.lineNumber, expression.position)
                             )
                             null

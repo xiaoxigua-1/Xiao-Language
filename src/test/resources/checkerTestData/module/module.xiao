@@ -1,6 +1,6 @@
 fn abc() {}
 class B {
-    fn abc() {
+    fn abc(): Str {
 
     }
 }
