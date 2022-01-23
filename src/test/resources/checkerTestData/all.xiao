@@ -2,11 +2,13 @@
 im module.module
 
 class A {
+    var abc = ""
     fn abc() {
 
     }
 }
 
 fn main(args: Str[]) {
-    Str().toInt()
+    "".toInta()
+    A().abc.toInt()
 }

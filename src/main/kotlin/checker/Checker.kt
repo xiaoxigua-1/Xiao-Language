@@ -76,6 +76,14 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return data.maxWithOrNull(compareBy { it.priority })?.info
     }
 
+    private fun findVarOrFunctionOrClass(expression: Expression, judgmental: (ASTNode) -> Boolean): ASTNode? {
+        return when (expression) {
+            is Expression.VariableValueExpression -> findVarOrFunctionOrClass(expression.value.literal, judgmental)
+            is Expression.CallExpression -> findVarOrFunctionOrClass(expression.name.literal, judgmental)
+            else -> null
+        }
+    }
+
     private fun findVarOrFunctionOrClass(
         name: String,
         local: List<ASTNode>,
@@ -84,7 +92,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return local.find {
             (it is Function && it.functionName.literal == name ||
                     it is Class && it.className.literal == name ||
-                    it is Expression.VariableValueExpression && it.value.literal == name) && judgmental(it)
+                    it is Statement.VariableDeclaration && it.variableName.literal == name) && judgmental(it)
         }
     }
 
@@ -159,6 +167,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 else -> ""
             }
         }
+    }
+
+    private fun getExpressionString(expression: Expression): String {
+        return getExpressionsStringList(listOf(expression))[0]
     }
 
     /**
@@ -370,66 +382,46 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             var returnValue: ASTNode? = null
             for (expression in expressions) {
                 if (returnValue != null) {
-                    when (returnValue) {
-                        is Expression.CallExpression -> {
-                            when (val check = checkCallExpression(returnValue).second) {
-                                is Class -> {
-                                    checkExpress(expression, check.functions + check.variables)
-                                    returnValue = if (expression is Expression.CallExpression)
-                                        findVarOrFunctionOrClass(
-                                            expression.name.literal,
-                                            check.functions + check.variables
-                                        ) { true }
-                                    else expression
-                                }
-                                is Function -> {
-//                                    findVarOrFunctionOrClass(check.returnType?.typeString) { it }
-                                    checkExpress(expression)
-                                    // TODO check function return
-                                }
-                                else -> {}
-                            }
+
+                    val findClass = when (returnValue) {
+                        is Class -> returnValue
+                        is Function -> {
+                            // TODO return type
+                            findVarOrFunctionOrClass(returnValue.returnType!!.typeString) { it is Class } as Class
                         }
-                        is Expression.VariableValueExpression -> when (val find =
-                            findVarOrFunctionOrClass(returnValue.value.literal) {
-                                it is Check.ImportFileValue ||
-                                        it is Statement.VariableDeclaration || it is Check.ParameterValue
-                            }) {
-                            is Check.ImportFileValue -> {
-                                checkExpress(expression, find.value)
-                                returnValue = if (expression is Expression.CallExpression)
-                                    findVarOrFunctionOrClass(expression.name.literal, find.value) { true }
-                                else expression
-                            }
-                            is Check.ParameterValue, is Statement.VariableDeclaration -> checkerReport += Report.Error(
-                                TypeError(
-                                    "name '${
-                                        when (expression) {
-                                            is Expression.VariableValueExpression -> expression.value.literal
-                                            is Expression.CallExpression -> expression.name.literal
-                                            else -> ""
-                                        }
-                                    }' is not defined"
-                                ),
-                                Report.Code(
-                                    expression.position.lineNumber,
-                                    expression.position
-                                )
-                            )
-                            else -> {}
+                        is Statement.VariableDeclaration -> {
+                            findVarOrFunctionOrClass(returnValue.type!!.typeString) { it is Class } as Class
                         }
-                        is Expression.StringExpression,
-                        is Expression.NullExpression,
-                        is Expression.BoolExpression,
-                        is Expression.IntExpression,
-                        is Expression.FloatExpression -> {
-                            returnValue as Expression
-                            findVarOrFunctionOrClass(getExpressionsStringList(listOf(returnValue))[0]) { it is Class }
-                        }
-                        else -> {}
+                        else -> null
                     }
 
-                } else returnValue = checkExpress(expression)
+                    returnValue = when (expression) {
+                        is Expression.CallExpression -> checkCallExpression(expression, findClass?.functions ?: listOf()).second
+                        is Expression.VariableValueExpression -> findVarOrFunctionOrClass(expression.value.literal, findClass?.variables ?: listOf()) { true } ?: run {
+                            checkerReport += Report.Error(
+                                NameError("name '${expression.value.literal}' is not defined"),
+                                Report.Code(expression.position.lineNumber, expression.position)
+                            )
+                            null
+                        }
+                        else -> null
+                    } ?: break
+                } else returnValue = findVarOrFunctionOrClass(expression) { true } ?: run {
+                    when (expression) {
+                        is Expression.StringExpression,
+                        is Expression.BoolExpression,
+                        is Expression.FloatExpression,
+                        is Expression.IntExpression,
+                        is Expression.NullExpression -> findVarOrFunctionOrClass(autoType(expression).typeString) { it is Class }
+                        else -> {
+                            checkerReport += Report.Error(
+                                NameError("name '${getExpressionsStringList(listOf(expression))[0]}' is not defined"),
+                                Report.Code(expression.position.lineNumber, expression.position)
+                            )
+                            null
+                        }
+                    }
+                }
             }
         }
 
