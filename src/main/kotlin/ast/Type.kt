@@ -9,6 +9,8 @@ sealed class Type {
 
     data class IntType(override val typeString: String = "Int") : Type()
 
+    data class FloatType(override val typeString: String = "Float") : Type()
+
     data class StrType(override val typeString: String = "Str") : Type()
 
     data class NullType(override val typeString: String = "Null") : Type()

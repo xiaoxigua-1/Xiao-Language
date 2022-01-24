@@ -11,4 +11,5 @@ fn main(args: Str[]) {
     "".toInta()
     A().abc.toInt()
     B().abc().toInt()
+    print("asd")
 }

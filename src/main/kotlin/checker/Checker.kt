@@ -104,6 +104,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         is Expression.StringExpression -> Type.StrType()
         is Expression.NullExpression -> Type.NullType()
         is Expression.BoolExpression -> Type.BoolType()
+        is Expression.FloatExpression -> Type.FloatType()
         is Expression.VariableValueExpression -> {
             val findVar =
                 findVarOrFunctionOrClass(expression.value.literal) { it is Statement.VariableDeclaration }
@@ -138,10 +139,6 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             Type.ListType(type = firstType)
         }
         else -> Type.TypeExpression(listOf(), "")
-    }
-
-    private fun typeConvert(expression: Expression, convertType: String) {
-
     }
 
     /**
@@ -387,7 +384,6 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         is Class -> returnValue
                         is Function -> {
                             // TODO return type
-                            println(returnValue.returnType!!.typeString)
                             findVarOrFunctionOrClass(returnValue.returnType!!.typeString) { it is Class } as Class
                         }
                         is Statement.VariableDeclaration -> {
@@ -400,7 +396,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         is Expression.CallExpression -> checkCallExpression(expression, findClass?.functions ?: listOf()).second
                         is Expression.VariableValueExpression -> findVarOrFunctionOrClass(expression.value.literal, findClass?.variables ?: listOf()) { true } ?: run {
                             checkerReport += Report.Error(
-                                NameError("name '${expression.value.literal}' is not defined"),
+                                NameError("name '${expression.value.literal}' variable is not defined"),
                                 Report.Code(expression.position.lineNumber, expression.position)
                             )
                             null
@@ -456,7 +452,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     Report.Code(node.name.position.lineNumber, node.name.position)
                 )
             } else {
-                // TODO check type
+                for (parameter in parameters) {
+
+//                    if (parameter.type.typeString != )
+                }
             }
         } else checkerReport += Report.Error(
             NameError("name '${node.name.literal}' function is not defined"),
