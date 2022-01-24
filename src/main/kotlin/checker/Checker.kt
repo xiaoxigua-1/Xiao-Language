@@ -98,10 +98,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
     private fun findType(
         type: Type,
-    ): ASTNode? {
+    ): Class? {
         return when (type) {
             is Type.ListType -> findType(type.type)
-            else -> findVarOrFunctionOrClass(type.typeString) { it is Class }
+            else -> findVarOrFunctionOrClass(type.typeString) { it is Class } as Class?
         }
     }
 
@@ -207,7 +207,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         local: List<ASTNode>? = null
     ): Pair<Expression.CallExpression, ASTNode> = when (val find =
         local?.find { it is Class && it.className.literal == node.name.literal || it is Function && it.functionName.literal == node.name.literal }
-            ?: findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class }) {
+            ?: if (local == null) findVarOrFunctionOrClass(node.name.literal) { it is Function || it is Class } else null) {
         is Function -> {
             checkCallFunction(node, find)
             node to find
@@ -316,6 +316,20 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 .find { it.functionName.literal == node.functionName.literal } == null
         ) {
             hierarchy[hierarchy.size - 1] += node
+            if (node.returnType == null) node.returnType = Type.VoidType()
+            else findType(node.returnType!!) ?: run {
+                val returnType = (node.returnType as Type.TypeExpression)
+                val typeTokens = returnType.tokens
+
+                checkerReport += Report.Error(
+                    TypeError("name '${returnType.typeString}' type is not defined"),
+                    Report.Code(
+                        typeTokens[0].position.lineNumber,
+                        typeTokens[0].position,
+                        typeTokens[typeTokens.size - 1].position
+                    )
+                )
+            }
 
             hierarchy.add(mutableListOf())
             node.parameters.mapIndexed { index, parameter ->
@@ -388,22 +402,26 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             var returnValue: ASTNode? = null
             for (expression in expressions) {
                 if (returnValue != null) {
-
                     val findClass = when (returnValue) {
                         is Class -> returnValue
                         is Function -> {
-                            // TODO return type
-                            findType(returnValue.returnType!!) as Class
+                            findType(returnValue.returnType!!)
                         }
                         is Statement.VariableDeclaration -> {
-                            findType(returnValue.type!!) as Class
+                            findType(returnValue.type!!)
                         }
                         else -> null
                     }
 
                     returnValue = when (expression) {
-                        is Expression.CallExpression -> checkCallExpression(expression, findClass?.functions ?: listOf()).second
-                        is Expression.VariableValueExpression -> findVarOrFunctionOrClass(expression.value.literal, findClass?.variables ?: listOf()) { true } ?: run {
+                        is Expression.CallExpression -> checkCallExpression(
+                            expression,
+                            findClass?.functions ?: listOf()
+                        ).second
+                        is Expression.VariableValueExpression -> findVarOrFunctionOrClass(
+                            expression.value.literal,
+                            findClass?.variables ?: listOf()
+                        ) { true } ?: run {
                             checkerReport += Report.Error(
                                 NameError("name '${expression.value.literal}' variable is not defined"),
                                 Report.Code(expression.position.lineNumber, expression.position)
@@ -497,7 +515,24 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Expression.ResetVariableExpression {
         val variable =
             (local?.find { it is Statement.VariableDeclaration && it.variableName.literal == node.variableName.literal }
-                ?: findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration }) as Statement.VariableDeclaration
+                ?: findVarOrFunctionOrClass(node.variableName.literal) { it is Statement.VariableDeclaration }) as Statement.VariableDeclaration?
+
+        if (variable == null) {
+            checkerReport += Report.Error(
+                NameError("name ${node.variableName.literal} is not defined"),
+                Report.Code(node.variableName.position.lineNumber, node.variableName.position),
+                help = listOf(
+                    Report.Help(
+                        """
+                        |var mut ${node.variableName.literal} = ...
+                    """,
+                        "make ${node.variableName.literal} mutable"
+                    )
+                )
+            )
+            return node
+        }
+
         if (variable.mutKeyword == null) checkerReport += Report.Error(
             TypeError("Cannot assign twice to immutable variable"),
             Report.Code(node.variableName.position.lineNumber, node.variableName.position),
