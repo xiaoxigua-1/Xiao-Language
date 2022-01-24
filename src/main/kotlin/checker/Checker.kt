@@ -96,6 +96,15 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    private fun findType(
+        type: Type,
+    ): ASTNode? {
+        return when (type) {
+            is Type.ListType -> findType(type.type)
+            else -> findVarOrFunctionOrClass(type.typeString) { it is Class }
+        }
+    }
+
     /**
      * Automatically determine the express type
      * @return Type data class
@@ -384,10 +393,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                         is Class -> returnValue
                         is Function -> {
                             // TODO return type
-                            findVarOrFunctionOrClass(returnValue.returnType!!.typeString) { it is Class } as Class
+                            findType(returnValue.returnType!!) as Class
                         }
                         is Statement.VariableDeclaration -> {
-                            findVarOrFunctionOrClass(returnValue.type!!.typeString) { it is Class } as Class
+                            findType(returnValue.type!!) as Class
                         }
                         else -> null
                     }
@@ -454,7 +463,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             } else {
                 for (parameter in parameters) {
 
-//                    if (parameter.type.typeString != )
+                    parameter.type.typeString
                 }
             }
         } else checkerReport += Report.Error(
