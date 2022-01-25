@@ -96,6 +96,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * find type class
+     * @return class data
+     */
     private fun findType(
         type: Type,
     ): Class? {
@@ -175,6 +179,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    /**
+     * expression to string
+     */
     private fun getExpressionString(expression: Expression): String {
         return getExpressionsStringList(listOf(expression))[0]
     }
