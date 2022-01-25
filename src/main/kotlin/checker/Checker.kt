@@ -499,6 +499,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
+    /**
+     * Check variable does it exist.
+     */
     private fun checkVariableValueExpression(
         node: Expression.VariableValueExpression,
         local: List<ASTNode>? = null
