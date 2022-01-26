@@ -16,4 +16,6 @@ fn main(args: Str[]) {
     d.abc.toInt()
     d.abc.toIntc()
     d.abc().g()
+    var b = A().abc
+    b.toInt()
 }

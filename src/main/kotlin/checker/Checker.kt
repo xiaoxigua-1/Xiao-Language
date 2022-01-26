@@ -109,6 +109,18 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         }
     }
 
+    private fun getType(
+        node: ASTNode?,
+    ): Type? {
+        return when (node) {
+            is Function -> node.returnType
+            is Statement.VariableDeclaration -> node.type
+            is Class -> Type.TypeExpression(listOf(), node.className.literal)
+            is Expression -> autoType(node)
+            else -> null
+        }
+    }
+
     /**
      * Automatically determine the express type
      * @return Type data class
@@ -245,7 +257,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 hierarchy[hierarchy.size - 1] += statement
                 statement
             }
-            is Statement.ExpressionStatement -> checkExpressionStatement(statement)
+            is Statement.ExpressionStatement -> {
+                checkExpressionStatement(statement)
+                statement
+            }
             else -> statement
         }
     }
@@ -370,11 +385,11 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
             node.findId = id
-            val autoType = autoType(node.expression[node.expression.size - 1])
+            val autoType = getType(checkExpressionStatement(Statement.ExpressionStatement(node.expression)))
 
             if (node.type == null) node.type = autoType
-            else if (autoType.typeString != node.type!!.typeString) checkerReport += Report.Error(
-                TypeError("${autoType.typeString} cannot be converted to ${node.type!!.typeString}"),
+            else if (autoType?.typeString != node.type!!.typeString) checkerReport += Report.Error(
+                TypeError("${autoType?.typeString} cannot be converted to ${node.type!!.typeString}"),
                 Report.Code(
                     (node.type as Type.TypeExpression).tokens[0].position.lineNumber,
                     (node.type as Type.TypeExpression).tokens[0].position,
@@ -383,7 +398,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 help = listOf(
                     Report.Help(
                         """
-                        |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType.typeString} = ${
+                        |var${if (node.mutKeyword == null) "" else " mut"} ${node.variableName.literal}: ${autoType?.typeString} = ${
                             getExpressionsStringList(
                                 node.expression
                             ).joinToString(".")
@@ -400,10 +415,10 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
         return node
     }
 
-    private fun checkExpressionStatement(node: Statement.ExpressionStatement): Statement.ExpressionStatement {
+    private fun checkExpressionStatement(node: Statement.ExpressionStatement): ASTNode? {
         val expressions = node.expression
 
-        if (expressions.size == 1) {
+        return if (expressions.size == 1) {
             checkExpress(expressions[0])
         } else {
             var returnValue: ASTNode? = null
@@ -454,9 +469,9 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                     }
                 }
             }
-        }
 
-        return node
+            returnValue
+        }
     }
 
     /**
