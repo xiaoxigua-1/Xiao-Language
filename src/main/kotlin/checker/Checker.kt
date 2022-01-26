@@ -250,7 +250,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 val upHierarchy = hierarchy[hierarchy.size - 1]
                 val upHierarchyVariable = upHierarchy.filterIsInstance<Statement.VariableDeclaration>()
 
-                checkVariableStatement(
+                checkVariableDeclaration(
                     statement, upHierarchyVariable.size + 1, upHierarchyVariable
                 )
 
@@ -380,7 +380,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
     /**
      * Check variable declaration correctness
      */
-    private fun checkVariableStatement(
+    private fun checkVariableDeclaration(
         node: Statement.VariableDeclaration, id: Int, variables: List<Statement.VariableDeclaration>
     ): Statement.VariableDeclaration {
         if (variables.find { it.variableName.literal == node.variableName.literal } == null) {
