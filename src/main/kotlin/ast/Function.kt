@@ -10,5 +10,5 @@ data class Function(
     val colon: Token?,
     var returnType: Type?,
     val statements: List<ASTNode>,
-    val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal),
+    val accessor: Accessor = Accessor.stringToAccessor(accessorToken?.literal)
 ) : ASTNode

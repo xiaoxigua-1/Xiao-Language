@@ -1,0 +1,5 @@
+im test1.test1
+
+fn main() {
+    print("abc")
+}

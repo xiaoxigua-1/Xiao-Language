@@ -1,5 +1,6 @@
 package xiaoLanguage.cli
 
+import xiaoLanguage.bytecode.Bytecode
 import xiaoLanguage.checker.Checker
 import xiaoLanguage.exception.CommandError
 import xiaoLanguage.compiler.Compiler
@@ -30,7 +31,7 @@ class CommandLineInterface(private val args: Array<String>) {
     private fun commandBuild() {
         if (args.size > 1) {
             val filePath = args[1]
-            Compiler(File(filePath)).compile()
+            Bytecode(Compiler(File(filePath)).compile().first).toByte()
         } else throw CommandError("missing file path")
     }
 
