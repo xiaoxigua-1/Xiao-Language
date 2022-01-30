@@ -7,8 +7,6 @@ import xiaoLanguage.ast.ASTNode
 import xiaoLanguage.ast.Expression
 import xiaoLanguage.ast.Function
 import xiaoLanguage.ast.Statement
-import xiaoLanguage.compiler.Compiler
-import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
@@ -27,14 +25,19 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
     }
 
     private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String): ByteArray {
-        if (hierarchy.size == 1) {
+        val className = if (hierarchy.size == 1) {
             hierarchy[0] += StaticPath(classPath, "file", Path(classPath).name)
+            Path(classPath).name
+        } else {
+            hierarchy += mutableListOf(StaticPath(classPath, "class", Path(classPath).name))
+            hierarchy.joinToString("$") { it.last().name }
         }
+
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         cw.visit(
             61,
             ACC_PUBLIC + ACC_SUPER,
-            Path(classPath).name,
+            className,
             null,
             "java/lang/Object",
             null
@@ -48,15 +51,24 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         }
 
         cw.visitEnd()
-
         return cw.toByteArray()
     }
 
     private fun writeFunction(cw: ClassWriter, function: Function? = null) {
         val data = FunctionLocal()
+        val functionName = if (hierarchy.size == 2 || function == null) {
+            function?.functionName?.literal
+        } else {
+            val path = hierarchy.last().last().path
+            val functionNameList = mutableListOf<String>()
+            hierarchy += mutableListOf(StaticPath(path, "function", function.functionName.literal))
+            hierarchy.forEach { if (it.last().type == "function") functionNameList += it.last().name }
+            functionNameList.joinToString("$")
+        }
+
         val mv = cw.visitMethod(
             function?.accessor?.access ?: (ACC_PUBLIC + ACC_STATIC),
-            function?.functionName?.literal ?: "<init>",
+            functionName ?: "<init>",
             "()V",
             null,
             null
