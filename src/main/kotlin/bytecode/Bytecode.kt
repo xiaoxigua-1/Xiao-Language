@@ -27,9 +27,11 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
     private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String): ByteArray {
         val className = if (hierarchy.size == 1) {
             hierarchy[0] += StaticPath(classPath, "file", Path(classPath).name)
+            hierarchy.add(mutableListOf())
             Path(classPath).name
         } else {
-            hierarchy += mutableListOf(StaticPath(classPath, "class", Path(classPath).name))
+            hierarchy[hierarchy.size - 1] += StaticPath(classPath, "class", Path(classPath).name)
+            hierarchy.add(mutableListOf())
             hierarchy.joinToString("$") { it.last().name }
         }
 
@@ -51,20 +53,26 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         }
 
         cw.visitEnd()
+        hierarchy.removeLast()
         return cw.toByteArray()
     }
 
     private fun writeFunction(cw: ClassWriter, function: Function? = null) {
         val data = FunctionLocal()
+        if (function != null) {
+            val path = hierarchy.last().last().path
+            hierarchy[hierarchy.size - 1] += StaticPath(path, "function", function.functionName.literal)
+        }
+
         val functionName = if (hierarchy.size == 2 || function == null) {
             function?.functionName?.literal
         } else {
-            val path = hierarchy.last().last().path
             val functionNameList = mutableListOf<String>()
-            hierarchy += mutableListOf(StaticPath(path, "function", function.functionName.literal))
             hierarchy.forEach { if (it.last().type == "function") functionNameList += it.last().name }
             functionNameList.joinToString("$")
         }
+
+        hierarchy.add(mutableListOf())
 
         val mv = cw.visitMethod(
             function?.accessor?.access ?: (ACC_PUBLIC + ACC_STATIC),
@@ -97,6 +105,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
         mv.visitInsn(RETURN)
         mv.visitMaxs(data.stacks + 1, data.locals + 1)
         mv.visitEnd()
+        hierarchy.removeLast()
     }
 
     private fun writeStatement(mv: MethodVisitor, statement: Statement, data: FunctionLocal) {
