@@ -30,8 +30,8 @@ class CommandLineInterface(private val args: Array<String>) {
 
     private fun commandBuild() {
         if (args.size > 1) {
-            val filePath = args[1]
-            Bytecode(Compiler(File(filePath)).compile().first).toByte()
+            val mainFile = File(args[1])
+            Bytecode(Compiler(mainFile).init().first, mainFile).toByte()
         } else throw CommandError("missing file path")
     }
 

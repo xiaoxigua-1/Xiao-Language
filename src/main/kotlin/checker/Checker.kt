@@ -8,7 +8,7 @@ import xiaoLanguage.util.Report
 import java.io.File
 import java.util.*
 
-class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
+class Checker(val ast: MutableList<ASTNode>, private val mainFile: File, private val compiler: Compiler) {
     private val stdLibraryPath = ""
     private val builtInLibraryPath = this::class.java.getResource("/library")!!.path
     private val checkerReport = mutableListOf<Report>()
@@ -29,8 +29,8 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
                 hierarchy[0] += expression
             }
         }
-
-        asts[mainFile.nameWithoutExtension] = checkAST
+        if (compiler.mainFile.absolutePath == mainFile.absolutePath) asts["main"] = checkAST
+        else asts[mainFile.nameWithoutExtension] = checkAST
 
         return CheckReturnData(asts, checkerReport, hierarchy[0])
     }
@@ -41,8 +41,8 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
         folder.walk().forEach {
             if (it.isFile) {
-                val (_, value) = Compiler(it.absoluteFile).compile()
-
+                val (ast, value) = compiler.compile(it.absoluteFile)
+                asts["@std/${it.nameWithoutExtension}"] = ast[it.nameWithoutExtension]!!
                 builtInAST += value
             }
         }
@@ -286,7 +286,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
             )
         }
 
-        val (ast, value) = Compiler(file).compile()
+        val (ast, value) = compiler.compile(file)
         hierarchy[0] += value
         asts[path] = ast[file.nameWithoutExtension]!!
     }
@@ -355,6 +355,24 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File) {
 
             hierarchy.add(mutableListOf())
             node.parameters.mapIndexed { index, parameter ->
+                var type = parameter.type
+
+                if (type is Type.TypeExpression) {
+                    val listLayers = (type.tokens.size - 1) / 2
+                    type = when (type.typeString) {
+                        "Str" -> Type.StrType()
+                        "Float" -> Type.FloatType()
+                        "Bool" -> Type.BoolType()
+                        "Null" -> Type.NullType()
+                        "Int" -> Type.IntType()
+                        else -> type
+                    }
+
+                    (1..listLayers).map {
+                        type = Type.ListType(type)
+                    }
+                }
+                parameter.type = type
                 hierarchy[hierarchy.size - 1] += Check.ParameterValue(
                     parameter.name.literal,
                     parameter.type,

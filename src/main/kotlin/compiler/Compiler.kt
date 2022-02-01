@@ -7,8 +7,10 @@ import xiaoLanguage.parser.Parser
 import xiaoLanguage.util.StringStream
 import java.io.File
 
-class Compiler(private val file: File) {
-    fun compile(): Pair<MutableMap<String, MutableList<ASTNode>>, List<ASTNode>> {
+class Compiler(val mainFile: File) {
+    fun init(): Pair<MutableMap<String, MutableList<ASTNode>>, List<ASTNode>> = compile(mainFile)
+
+    fun compile(file: File): Pair<MutableMap<String, MutableList<ASTNode>>, List<ASTNode>> {
         val stringStream = StringStream(file)
         val lex = Lexer(stringStream)
         val parser = Parser(lex, file)
@@ -19,7 +21,7 @@ class Compiler(private val file: File) {
             it.printReport(file.readLines(), file.absolutePath)
         }
 
-        val (structure, checkerReport, global) = Checker(ast, file).check()
+        val (structure, checkerReport, global) = Checker(ast, file, this).check()
 
         checkerReport.forEach {
             it.printReport(file.readLines(), file.absolutePath)

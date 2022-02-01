@@ -7,10 +7,11 @@ import xiaoLanguage.ast.ASTNode
 import xiaoLanguage.ast.Expression
 import xiaoLanguage.ast.Function
 import xiaoLanguage.ast.Statement
+import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
-class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val outputPath: String = "./") {
+class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, val mainFile: File, private val outputPath: String = "./") {
     data class FunctionLocal(var locals: Int = 0, var stacks: Int = 0)
 
     data class StaticPath(var path: String, val type: String, val name: String)
@@ -18,22 +19,27 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
     private val hierarchy = mutableListOf<MutableList<StaticPath>>(mutableListOf())
     fun toByte() {
         for (clazz in ast) {
-            val byte = writeClass(clazz.key, clazz.value, "${clazz.key}.xiao")
-//            val file = File(outputPath, "${clazz.key}.class")
-//            file.writeBytes(byte)
+            if (clazz.key.startsWith("@std/")) {
+
+            } else {
+                val path = if (clazz.key == "main") "Main" else clazz.key
+                val byte = writeClass(path, clazz.value, "${clazz.key}.xiao")
+                val file = File(outputPath, "${path}.class")
+                file.writeBytes(byte)
+            }
         }
     }
 
     private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String): ByteArray {
         val className = if (hierarchy.size == 1) {
             hierarchy[0] += StaticPath(classPath, "file", Path(classPath).name)
-            hierarchy.add(mutableListOf())
             Path(classPath).name
         } else {
             hierarchy[hierarchy.size - 1] += StaticPath(classPath, "class", Path(classPath).name)
-            hierarchy.add(mutableListOf())
             hierarchy.joinToString("$") { it.last().name }
         }
+
+        hierarchy.add(mutableListOf())
 
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         cw.visit(
@@ -45,6 +51,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
             null
         )
         cw.visitSource(source, null)
+        writeFunction(cw)
 
         for (member in members) {
             if (member is Function) {
@@ -60,7 +67,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
     private fun writeFunction(cw: ClassWriter, function: Function? = null) {
         val data = FunctionLocal()
         if (function != null) {
-            val path = hierarchy.last().last().path
+            val path = hierarchy[hierarchy.size - 2].last().path
             hierarchy[hierarchy.size - 1] += StaticPath(path, "function", function.functionName.literal)
         }
 
@@ -68,16 +75,29 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
             function?.functionName?.literal
         } else {
             val functionNameList = mutableListOf<String>()
-            hierarchy.forEach { if (it.last().type == "function") functionNameList += it.last().name }
+            for (index in hierarchy.size downTo 0) {
+                if (hierarchy[index].last().type == "function")
+                    functionNameList += hierarchy[index].last().name
+                else break
+            }
+            functionNameList.reverse()
             functionNameList.joinToString("$")
         }
 
         hierarchy.add(mutableListOf())
+        val functionDescriptor = if (function != null) {
+            data.locals += function.parameters.size
+            "(${
+                function.parameters.map {
+                    it.type.descriptor
+                }.joinToString(";")
+            };)${function.returnType?.descriptor ?: "V"}"
+        } else "()V"
 
         val mv = cw.visitMethod(
-            function?.accessor?.access ?: (ACC_PUBLIC + ACC_STATIC),
+            function?.accessor?.access ?: ACC_PUBLIC,
             functionName ?: "<init>",
-            "()V",
+            functionDescriptor,
             null,
             null
         )
@@ -100,10 +120,12 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ou
                 false
             )
             mv.visitVarInsn(ALOAD, 0)
+            data.locals++
+            data.stacks++
         }
 
         mv.visitInsn(RETURN)
-        mv.visitMaxs(data.stacks + 1, data.locals + 1)
+        mv.visitMaxs(data.stacks, data.locals)
         mv.visitEnd()
         hierarchy.removeLast()
     }
