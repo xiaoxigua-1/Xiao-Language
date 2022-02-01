@@ -7,7 +7,7 @@ import kotlin.test.Test
 class CheckTest {
     private fun checkTest(path: String): MutableMap<String, MutableList<ASTNode>> {
         val file = File(this::class.java.getResource(path)!!.path)
-        return Compiler(file).compile().first
+        return Compiler(file).init().first
     }
 
     @Test
