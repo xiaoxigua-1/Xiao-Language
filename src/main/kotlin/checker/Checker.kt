@@ -29,8 +29,7 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File, private
                 hierarchy[0] += expression
             }
         }
-        if (compiler.mainFile.absolutePath == mainFile.absolutePath) asts["main"] = checkAST
-        else asts[mainFile.nameWithoutExtension] = checkAST
+        asts[mainFile.nameWithoutExtension] = checkAST
 
         return CheckReturnData(asts, checkerReport, hierarchy[0])
     }

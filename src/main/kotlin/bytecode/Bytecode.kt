@@ -22,7 +22,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, val mainFile: 
             if (clazz.key.startsWith("@std/")) {
 
             } else {
-                val path = if (clazz.key == "main") "Main" else clazz.key
+                val path = if (clazz.key == mainFile.nameWithoutExtension) "Main" else clazz.key
                 val byte = writeClass(path, clazz.value, "${clazz.key}.xiao")
                 val file = File(outputPath, "${path}.class")
                 file.writeBytes(byte)
