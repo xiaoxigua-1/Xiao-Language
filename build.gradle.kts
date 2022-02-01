@@ -15,6 +15,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("org.ow2.asm:asm:9.2")
+    implementation("com.github.ajalt.clikt:clikt:3.4.0")
 }
 
 tasks.test {

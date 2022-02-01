@@ -11,20 +11,22 @@ import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
-class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, val mainFile: File, private val outputPath: String = "./") {
+class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val mainFile: File, private val outputPath: String = "./") {
     data class FunctionLocal(var locals: Int = 0, var stacks: Int = 0)
 
     data class StaticPath(var path: String, val type: String, val name: String)
 
     private val hierarchy = mutableListOf<MutableList<StaticPath>>(mutableListOf())
+
     fun toByte() {
         for (clazz in ast) {
             if (clazz.key.startsWith("@std/")) {
-
+                println(clazz.value)
             } else {
                 val path = if (clazz.key == mainFile.nameWithoutExtension) "Main" else clazz.key
                 val byte = writeClass(path, clazz.value, "${clazz.key}.xiao")
                 val file = File(outputPath, "${path}.class")
+                file.parentFile.mkdirs()
                 file.writeBytes(byte)
             }
         }
