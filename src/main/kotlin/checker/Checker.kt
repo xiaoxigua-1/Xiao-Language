@@ -1,5 +1,6 @@
 package xiaoLanguage.checker
 
+import xiaoLanguage.ReaderJar
 import xiaoLanguage.ast.*
 import xiaoLanguage.ast.Function
 import xiaoLanguage.compiler.Compiler
@@ -10,13 +11,14 @@ import java.util.*
 
 class Checker(val ast: MutableList<ASTNode>, private val mainFile: File, private val compiler: Compiler) {
     private val stdLibraryPath = ""
-    private val builtInLibraryPath = this::class.java.getResource("/library")!!.path
+    private val classloader = Thread.currentThread().contextClassLoader
+    private val builtInLibraryPath = classloader.getResource("library/library.zip")!!.toURI()
     private val checkerReport = mutableListOf<Report>()
     private val asts = mutableMapOf<String, MutableList<ASTNode>>()
     private val hierarchy = mutableListOf<MutableList<ASTNode>>(mutableListOf())
 
     fun check(): CheckReturnData {
-        if (!mainFile.path.startsWith(builtInLibraryPath)) hierarchy[0] += builtIn()
+        if (!mainFile.path.startsWith("@std/")) hierarchy[0] += builtIn()
 
         val checkAST = mutableListOf<ASTNode>()
 
@@ -36,14 +38,13 @@ class Checker(val ast: MutableList<ASTNode>, private val mainFile: File, private
 
     private fun builtIn(): MutableList<ASTNode> {
         val builtInAST = mutableListOf<ASTNode>()
-        val folder = File(builtInLibraryPath)
-
-        folder.walk().forEach {
-            if (it.isFile) {
-                val (ast, value) = compiler.compile(it.absoluteFile)
-                asts["@std/${it.nameWithoutExtension}"] = ast[it.nameWithoutExtension]!!
-                builtInAST += value
-            }
+        println(builtInLibraryPath)
+        val zip = ReaderJar.readJar(builtInLibraryPath)
+        zip.forEach {
+            val file = File("@std/${it.key}")
+            val (ast, value) = compiler.compile(it.value, file)
+            asts["@std/${file.nameWithoutExtension}"] = ast[file.nameWithoutExtension]!!
+            builtInAST += value
         }
 
         return builtInAST

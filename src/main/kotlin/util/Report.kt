@@ -100,4 +100,11 @@ sealed class Report {
 
         println(outputText)
     }
+
+    fun printReport() {
+        val exceptionName = exception::class.java.simpleName
+        val level = this::class.java.simpleName
+
+        println("${Color.valueOf(level).asciiColor}$exceptionName: ${exception.message} ${Color.End.asciiColor}")
+    }
 }

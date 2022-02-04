@@ -12,7 +12,7 @@ import xiaoLanguage.util.Report.*
 import xiaoLanguage.util.Report
 import java.io.File
 
-class Parser(lex: Lexer, private val file: File) {
+class Parser(lex: Lexer, private val file: File? = null) {
     private val parserReporter = mutableListOf<Report>()
     private var tokens: MutableList<Token> = mutableListOf()
     private val lexerReport = mutableListOf<Report>()
@@ -40,7 +40,8 @@ class Parser(lex: Lexer, private val file: File) {
             }
         } else {
             lexerReport.forEach {
-                it.printReport(file.readLines(), file.absolutePath)
+                if (file == null) it.printReport()
+                else it.printReport(file.readLines(), file.absolutePath)
             }
         }
 

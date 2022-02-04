@@ -2,8 +2,7 @@ package xiaoLanguage.util
 
 import java.io.File
 
-class StringStream(file: File) {
-    private val fileContent = file.readText()
+class StringStream(private val fileContent: String) {
     private var index = 0
 
     fun nextChar() {

@@ -4,7 +4,7 @@ import xiaoLanguage.tokens.Token
 
 data class Function(
     val accessorToken: Token? = null,
-    val functionKeyword: Token,
+    val functionKeyword: Token?,
     val functionName: Token,
     val parameters: List<Parameter>,
     val colon: Token?,
