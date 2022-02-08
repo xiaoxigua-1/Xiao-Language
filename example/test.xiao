@@ -2,4 +2,5 @@ im test1.test1
 
 fn main(args: Str[]) {
     print("abc")
+    print("hello world")
 }
