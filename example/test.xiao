@@ -1,6 +1,6 @@
 im test1.test1
 
 fn main(args: Str[]) {
-    print("abc")
+    test()
     print("hello world")
 }
