@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 import xiaoLanguage.ast.ASTNode
+import xiaoLanguage.ast.Class
 import xiaoLanguage.ast.Expression
 import xiaoLanguage.ast.Function
 import xiaoLanguage.ast.Statement
@@ -12,16 +13,22 @@ import kotlin.io.path.Path
 import kotlin.io.path.name
 
 class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val mainFile: File, private val outputPath: String = "./") {
-    data class FunctionLocal(var locals: Int = 0, var stacks: Int = 0)
+    data class FunctionLocal(var locals: Int = 1, var stacks: Int = 1)
 
-    data class StaticPath(var path: String, val type: String, val name: String)
+    data class StaticPath(var path: String, val type: String, val name: String, val node: ASTNode? = null)
 
     private val hierarchy = mutableListOf<MutableList<StaticPath>>(mutableListOf())
 
     fun toByte() {
         for (clazz in ast) {
             if (clazz.key.startsWith("@std/")) {
-                println(clazz.value)
+                clazz.value.forEach {
+                    when (it) {
+                        is Function -> {
+                            hierarchy[0] += StaticPath("std/Std", "function", it.functionName.literal, it)
+                        }
+                    }
+                }
             } else {
                 val path = if (clazz.key == mainFile.nameWithoutExtension) "Main" else clazz.key
                 val byte = writeClass(path, clazz.value, "${clazz.key}.xiao")
@@ -32,12 +39,12 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
         }
     }
 
-    private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String): ByteArray {
+    private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String, classNode: Class? = null): ByteArray {
         val className = if (hierarchy.size == 1) {
             hierarchy[0] += StaticPath(classPath, "file", Path(classPath).name)
             Path(classPath).name
         } else {
-            hierarchy[hierarchy.size - 1] += StaticPath(classPath, "class", Path(classPath).name)
+            hierarchy[hierarchy.size - 1] += StaticPath(classPath, "class", Path(classPath).name, classNode)
             hierarchy.joinToString("$") { it.last().name }
         }
 
@@ -70,7 +77,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
         val data = FunctionLocal()
         if (function != null) {
             val path = hierarchy[hierarchy.size - 2].last().path
-            hierarchy[hierarchy.size - 1] += StaticPath(path, "function", function.functionName.literal)
+            hierarchy[hierarchy.size - 1] += StaticPath(path, "function", function.functionName.literal, function)
         }
 
         val functionName = if (hierarchy.size == 2 || function == null) {
@@ -151,7 +158,25 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
                 mv.visitLdcInsn(expression.value.literal)
             }
             is Expression.CallExpression -> {
-
+                var function: StaticPath? = null
+                hierarchy.map {
+                    it.map { staticPath ->
+                        if (staticPath.name == expression.name.literal)
+                            function = staticPath
+                    }
+                }
+                if (function != null) {
+                    val functionNode = function!!.node as Function
+                    val descriptor = "(${
+                        functionNode.parameters.map {
+                            it.type.descriptor
+                        }.joinToString(";")
+                    };)${functionNode.returnType?.descriptor ?: "V"}"
+                    expression.args.forEach {
+                        writeExpressionArray(mv, it, data)
+                    }
+                    mv.visitMethodInsn(INVOKESTATIC, function!!.path, function!!.name, descriptor, false)
+                }
             }
             else -> {}
         }
