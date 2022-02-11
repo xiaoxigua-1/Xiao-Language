@@ -2,5 +2,5 @@ im test1.test1
 
 fn main(args: Str[]) {
     test()
-    print("hello world")
+    print("hello world 2")
 }

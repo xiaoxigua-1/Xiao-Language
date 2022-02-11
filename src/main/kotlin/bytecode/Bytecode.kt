@@ -42,7 +42,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
     private fun writeClass(classPath: String, members: MutableList<ASTNode>, source: String, classNode: Class? = null): ByteArray {
         val className = if (hierarchy.size == 1) {
             hierarchy[0] += StaticPath(classPath, "file", Path(classPath).name)
-            Path(classPath).name
+            classPath
         } else {
             hierarchy[hierarchy.size - 1] += StaticPath(classPath, "class", Path(classPath).name, classNode)
             hierarchy.joinToString("$") { it.last().name }
@@ -69,7 +69,12 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
         }
 
         cw.visitEnd()
-        hierarchy.removeLast()
+        if (hierarchy.size == 2) {
+            val lastLocal = hierarchy.last()
+            hierarchy.removeLast()
+            hierarchy[hierarchy.size - 1].addAll(lastLocal)
+        } else hierarchy.removeLast()
+
         return cw.toByteArray()
     }
 
@@ -100,9 +105,8 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
                 function.parameters.map {
                     it.type.descriptor
                 }.joinToString(";")
-            };)${function.returnType?.descriptor ?: "V"}"
+            }${if (function.parameters.isEmpty()) "" else ";"})${function.returnType?.descriptor ?: "V"}"
         } else "()V"
-
         val mv = cw.visitMethod(
             function?.accessor?.access ?: ACC_PUBLIC,
             functionName ?: "<init>",
@@ -159,6 +163,7 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
             }
             is Expression.CallExpression -> {
                 var function: StaticPath? = null
+                println(hierarchy)
                 hierarchy.map {
                     it.map { staticPath ->
                         if (staticPath.name == expression.name.literal)
@@ -171,10 +176,11 @@ class Bytecode(val ast: MutableMap<String, MutableList<ASTNode>>, private val ma
                         functionNode.parameters.map {
                             it.type.descriptor
                         }.joinToString(";")
-                    };)${functionNode.returnType?.descriptor ?: "V"}"
+                    }${if (functionNode.parameters.isEmpty()) "" else ";"})${functionNode.returnType?.descriptor ?: "V"}"
                     expression.args.forEach {
                         writeExpressionArray(mv, it, data)
                     }
+                    if (data.stacks < expression.args.size + 1) data.stacks = expression.args.size + 1
                     mv.visitMethodInsn(INVOKESTATIC, function!!.path, function!!.name, descriptor, false)
                 }
             }
