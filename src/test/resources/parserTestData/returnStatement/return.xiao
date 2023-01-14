@@ -1,9 +1,0 @@
-return 100
-
-return "abc"
-
-return A
-
-return a
-
-return a()
