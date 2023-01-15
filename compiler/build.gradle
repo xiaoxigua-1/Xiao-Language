@@ -8,10 +8,10 @@ plugins {
 
 dependencies {
     implementation 'org.apache.commons:commons-text'
-    implementation project(':utilities')
+    implementation project(':libs:lexer:lib')
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'xiao.language.app.AppKt'
+    mainClass = 'xiao.language.compiler.AppKt'
 }

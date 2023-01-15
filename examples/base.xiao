@@ -9,11 +9,11 @@ struct Class {
   member: [Member],
 }
 
-fn Class::get_name(self) -> String {
+fn Class::get_name(self): String {
   self.name
 }
 
-fn Class::get_member_count(self) -> Int {
+fn Class::get_member_count(self): Int {
   self.member.length
 }
 
