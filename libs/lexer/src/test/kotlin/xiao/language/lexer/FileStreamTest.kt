@@ -21,7 +21,6 @@ class FileStreamTest {
     @Test
     fun fileStreamPeekTest() {
         val fileStream = FileStream(file)
-        val all = file.readText()
 
         do {
             val peek = fileStream.peek()
