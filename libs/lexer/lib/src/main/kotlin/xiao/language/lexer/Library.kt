@@ -17,7 +17,7 @@ class Lexer(
 
         return token ?: run {
             isEOF = true
-            Token(Tokens.EOF, ' ', Span(fileStream.getIndex()))
+            Token(Tokens.EOF, '\u0000', Span(fileStream.getIndex()))
         }
     }
 }
