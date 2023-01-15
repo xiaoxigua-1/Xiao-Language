@@ -87,6 +87,7 @@ private fun Lexer.number(start: Int, startChar: Char): Token {
     var value = "$startChar"
 
     return when (startChar) {
+        // TODO other number format
         '0' -> Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
         else -> {
             do {
@@ -112,5 +113,7 @@ private fun Lexer.ident(start: Int, startChar: Char): Token {
         }
     } while(fileStream.hasNext())
 
-    return Token(Tokens.Identifier, value, Span(start, fileStream.getIndex()))
+    return if (value in Keywords.keywords) {
+        Token(Tokens.Keyword, value, Span(start, fileStream.getIndex()))
+    } else Token(Tokens.Identifier, value, Span(start, fileStream.getIndex()))
 }

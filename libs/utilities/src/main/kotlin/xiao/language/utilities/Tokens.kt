@@ -9,6 +9,5 @@ enum class Tokens {
     Symbol,
     Whitespace,
     NewLine,
-    Unknown,
     EOF,
 }

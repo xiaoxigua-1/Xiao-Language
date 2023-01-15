@@ -5,7 +5,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class LexerTest {
-    private val identTestFile = FileStreamTest::class.java.getResource("/idents.xiao")
+    private val identTestFile = FileStreamTest::class.java.getResource("/idents.xiao")!!
+    private val literalTestFile = FileStreamTest::class.java.getResource("/literals.xiao")!!
 
     @Test
     fun lexerIdentTest() {
@@ -21,9 +22,24 @@ class LexerTest {
         ).iterator()
         val lexer = Lexer(FileStream(identTestFile))
 
+        lexerTest(lexer, Tokens.Identifier, idents)
+    }
+
+    @Test
+    fun lexerLiteralTest() {
+        val literals = listOf(
+            """abc_ def 嗨 $#!""",
+            """abc"""
+        ).iterator()
+        val lexer = Lexer(FileStream(literalTestFile))
+
+        lexerTest(lexer, Tokens.Literal, literals)
+    }
+
+    private fun lexerTest(lexer: Lexer, expectedType: Tokens, expected: Iterator<String>) {
         for (token in lexer) {
-            if (token.type == Tokens.Identifier) {
-                assertEquals(idents.next(), token.value)
+            if (token.type == expectedType) {
+                assertEquals(expected.next(), token.value)
             }
         }
     }
