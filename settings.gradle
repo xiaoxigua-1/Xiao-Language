@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'Xiao-Language'
-include('compiler', ':libs:lexer:lib', ':libs:parser:lib', ':libs:utilities:lib')
+include('compiler', ':libs:lexer', ':libs:parser', ':libs:utilities')

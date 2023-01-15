@@ -16,11 +16,8 @@
             <option value="$PROJECT_DIR$/compiler" />
             <option value="$PROJECT_DIR$/libs" />
             <option value="$PROJECT_DIR$/libs/lexer" />
-            <option value="$PROJECT_DIR$/libs/lexer/lib" />
             <option value="$PROJECT_DIR$/libs/parser" />
-            <option value="$PROJECT_DIR$/libs/parser/lib" />
             <option value="$PROJECT_DIR$/libs/utilities" />
-            <option value="$PROJECT_DIR$/libs/utilities/lib" />
           </set>
         </option>
       </GradleProjectSettings>
