@@ -8,7 +8,7 @@ import xiao.language.utilities.exceptions.EOFException
 
 class Lexer(
     val fileStream: FileStream
-): Iterator<Token> {
+) : Iterator<Token> {
     private var isEOF = false
 
     override fun hasNext(): Boolean = !isEOF
@@ -50,7 +50,7 @@ private fun Lexer.whitespace(start: Int): Token {
             c?.isWhitespace() ?: false -> value += fileStream.next()
             else -> break
         }
-    } while(fileStream.hasNext())
+    } while (fileStream.hasNext())
 
     return Token(Tokens.Whitespace, value, Span(start, fileStream.getIndex()))
 }
@@ -59,7 +59,7 @@ private fun Lexer.literal(start: Int, startChar: Char): Token {
     var value = ""
 
     for (c in fileStream) {
-        value += when(c) {
+        value += when (c) {
             startChar -> return Token(Tokens.Literal, value, Span(start, fileStream.getIndex()))
             '\\' -> if (fileStream.hasNext()) fileStream.next().asEscaped() else break
             '\n' -> break
@@ -74,7 +74,7 @@ private fun Lexer.rawLiteral(start: Int): Token {
     var value = ""
 
     for (c in fileStream) {
-        value += when(c) {
+        value += when (c) {
             '#' -> return Token(Tokens.RawLiteral, value, Span(start, fileStream.getIndex()))
             else -> c
         }
@@ -86,16 +86,21 @@ private fun Lexer.rawLiteral(start: Int): Token {
 private fun Lexer.number(start: Int, startChar: Char): Token {
     var value = "$startChar"
 
-    return when (startChar) {
+    return when {
         // TODO other number format
-        '0' -> Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
+        startChar == '0' || fileStream.peek() in listOf('x', 'b', 'o') -> Token(
+            Tokens.Number,
+            value,
+            Span(start, fileStream.getIndex())
+        )
+
         else -> {
             do {
                 when (fileStream.peek()) {
                     in '0'..'9' -> value += fileStream.next()
                     else -> break
                 }
-            } while(fileStream.hasNext())
+            } while (fileStream.hasNext())
 
             Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
         }
@@ -111,7 +116,7 @@ private fun Lexer.ident(start: Int, startChar: Char): Token {
             (c?.isWhitespace() ?: false || c?.isAsciiSymbol() ?: false) && c != '_' -> break
             else -> if (fileStream.hasNext()) fileStream.next() else break
         }
-    } while(fileStream.hasNext())
+    } while (fileStream.hasNext())
 
     return if (value in Keywords.keywords) {
         Token(Tokens.Keyword, value, Span(start, fileStream.getIndex()))

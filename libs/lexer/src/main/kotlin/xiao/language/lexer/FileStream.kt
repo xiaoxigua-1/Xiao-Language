@@ -14,15 +14,15 @@ class FileStream(
 
     constructor(
         uri: URI
-    ): this(File(uri))
+    ) : this(File(uri))
 
     constructor (
         path: String,
-    ): this(File(path))
+    ) : this(File(path))
 
     constructor (
         path: URL,
-    ): this(File(path.toURI()))
+    ) : this(File(path.toURI()))
 
     init {
         this.content = file.readText()
