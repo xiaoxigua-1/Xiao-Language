@@ -32,7 +32,7 @@ class LexerTest {
     @Test
     fun lexerNumberTest() {
         val numbers = listOf(
-            "0x1234567890abcdef", "0b10101100", "0o1234567"
+            "091231231231", "0x1234567890abcdef", "0b10101100", "0o1234567"
         ).iterator()
         val lexer = Lexer(FileStream(numbersTestFile))
 

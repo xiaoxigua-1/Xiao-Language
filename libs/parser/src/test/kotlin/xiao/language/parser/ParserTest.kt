@@ -6,9 +6,9 @@ package xiao.language.parser
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class LibraryTest {
+class ParserTest {
     @Test fun someLibraryMethodReturnsTrue() {
-        val classUnderTest = Library()
+        val classUnderTest = Parser()
         assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'")
     }
 }

@@ -28,6 +28,9 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 
+    // This dependency is xiao language lexer
+    testImplementation project(':libs:lexer')
+
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     api 'org.apache.commons:commons-math3:3.6.1'
 }
