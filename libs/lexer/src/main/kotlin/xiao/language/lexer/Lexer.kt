@@ -3,6 +3,7 @@
  */
 package xiao.language.lexer
 
+import org.apache.commons.math3.exception.NotANumberException
 import xiao.language.utilities.*
 import xiao.language.utilities.exceptions.EOFException
 
@@ -87,12 +88,14 @@ private fun Lexer.number(start: Int, startChar: Char): Token {
     var value = "$startChar"
 
     return when {
-        // TODO other number format
-        startChar == '0' || fileStream.peek() in listOf('x', 'b', 'o') -> Token(
-            Tokens.Number,
-            value,
-            Span(start, fileStream.getIndex())
-        )
+        startChar == '0' && fileStream.peek() in listOf('x', 'b', 'o') -> {
+            when (fileStream.peek()) {
+                'x', 'X' -> otherNumberFormat(start, startChar, ('a'..'f') + ('A'..'F') + ('0'..'9'))
+                'b', 'B' -> otherNumberFormat(start, startChar, ('0'..'1').toList())
+                'o', 'O' -> otherNumberFormat(start, startChar, ('0'..'7').toList())
+                else -> throw NotANumberException()
+            }
+        }
 
         else -> {
             do {
@@ -105,6 +108,22 @@ private fun Lexer.number(start: Int, startChar: Char): Token {
             Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
         }
     }
+}
+
+private fun Lexer.otherNumberFormat(start: Int, startChar: Char, range: List<Char>): Token {
+    var value = "$startChar${fileStream.next()}"
+
+    do {
+        val c = fileStream.peek()
+
+        when {
+            c in range -> value += fileStream.next()
+            c?.isWhitespace() ?: true -> break
+            else -> throw EOFException("Number format error", Span(start, fileStream.getIndex()))
+        }
+    } while (fileStream.hasNext())
+
+    return Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
 }
 
 private fun Lexer.ident(start: Int, startChar: Char): Token {
