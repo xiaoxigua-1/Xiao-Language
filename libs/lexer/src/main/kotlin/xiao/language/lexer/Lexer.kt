@@ -57,11 +57,14 @@ private fun Lexer.whitespace(start: Int): Token {
 }
 
 private fun Lexer.literal(start: Int, startChar: Char): Token {
-    var value = ""
+    var value = "$startChar"
 
     for (c in fileStream) {
         value += when (c) {
-            startChar -> return Token(Tokens.Literal, value, Span(start, fileStream.getIndex()))
+            startChar -> {
+                value += c
+                return Token(Tokens.Literal, value, Span(start, fileStream.getIndex()))
+            }
             '\\' -> if (fileStream.hasNext()) fileStream.next().asEscaped() else break
             '\n' -> break
             else -> c

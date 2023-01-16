@@ -22,7 +22,7 @@ class LexerTest {
     @Test
     fun lexerLiteralTest() {
         val literals = listOf(
-            """abc_ def 嗨 $#!""", """abc"""
+            """"abc_ def 嗨 $#!"""", """'abc'"""
         ).iterator()
         val lexer = Lexer(FileStream(literalTestFile))
 
