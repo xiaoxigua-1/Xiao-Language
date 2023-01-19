@@ -15,5 +15,9 @@ enum class Punctuations(val punctuation: String) {
 
     companion object {
         val punctuations = Punctuations.values().map { it.punctuation }
+
+        fun findPunctuation(punctuation: String): List<Punctuations> {
+            return Punctuations.values().filter { it.punctuation.startsWith(punctuation) }
+        }
     }
 }

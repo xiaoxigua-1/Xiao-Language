@@ -33,8 +33,9 @@ private fun Lexer.nextToken(): Token? {
             c == '"' || c == '\'' -> literal(fileStream.getIndex(), c)
             c == '#' -> rawLiteral(fileStream.getIndex())
             c in '0'..'9' -> number(fileStream.getIndex(), c)
+            c in Delimiters.delimiters -> Token(Tokens.Delimiters, c, Span(fileStream.getIndex()))
             c.isWhitespace() -> whitespace(fileStream.getIndex())
-            c.isAsciiSymbol() && c != '_' -> Token(Tokens.Symbol, c, Span(fileStream.getIndex()))
+            c.isAsciiSymbol() && c != '_' -> symbol(fileStream.getIndex(), c)
             else -> ident(fileStream.getIndex(), c)
         }
     } else {
@@ -47,13 +48,23 @@ private fun Lexer.whitespace(start: Int): Token {
 
     do {
         val c = fileStream.peek()
-        when {
-            c?.isWhitespace() ?: false -> value += fileStream.next()
-            else -> break
-        }
+        if (c?.isWhitespace() == true) value += c
+        else break
     } while (fileStream.hasNext())
 
     return Token(Tokens.Whitespace, value, Span(start, fileStream.getIndex()))
+}
+
+private fun Lexer.symbol(start: Int, startChar: Char): Token {
+    var value = "$startChar"
+
+    do {
+        val c = fileStream.peek()
+        if (c?.isAsciiSymbol() == true) value += c
+        else break
+    } while (fileStream.hasNext())
+
+    return Token(Tokens.Symbol, value, Span(start, fileStream.getIndex()))
 }
 
 private fun Lexer.literal(start: Int, startChar: Char): Token {
@@ -65,6 +76,7 @@ private fun Lexer.literal(start: Int, startChar: Char): Token {
                 value += c
                 return Token(Tokens.Literal, value, Span(start, fileStream.getIndex()))
             }
+
             '\\' -> if (fileStream.hasNext()) fileStream.next().asEscaped() else break
             '\n' -> break
             else -> c

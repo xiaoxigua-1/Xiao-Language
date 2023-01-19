@@ -10,4 +10,5 @@ enum class Tokens {
     Whitespace,
     NewLine,
     EOF,
+    Delimiters,
 }
