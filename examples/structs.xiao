@@ -1,0 +1,22 @@
+use System::out::println;
+
+struct Example {
+    name: String,
+    mut age: Int,
+}
+
+fn Example::printName(self) {
+    println(self.name);
+}
+
+fn Example::printAge(self) {
+    println(self.age);
+}
+
+pub fn main() {
+    var example = Example { name: "", age: 0 };
+    example.printName();
+    example.printAge();
+    example.age += 1;
+    example.printAge();
+}

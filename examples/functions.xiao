@@ -1,0 +1,7 @@
+use System::out::println;
+
+pub fn main() {
+    consoleStdOutput("test");
+}
+
+fn consoleStdOutput(s: String) = println(s);

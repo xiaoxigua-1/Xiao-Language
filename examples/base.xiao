@@ -1,25 +1,25 @@
-use System.out.println
+use System::out::println;
 
 struct Member {
-  name: String,
+    name: String,
 }
 
 struct Class {
-  name: String,
-  member: [Member],
+    name: String,
+    member: [Member],
 }
 
 fn Class::get_name(self): String {
-  self.name
+    self.name
 }
 
 fn Class::get_member_count(self): Int {
-  self.member.length
+    self.member.length;
 }
 
 fn main() {
-  var class = Class { name: "xiao xigua" }
-  var name = class.get_name()
+    var class = Class { name: "xiao xigua" };
+    var name = class.get_name();
 
-  println(name)
+    println(name);
 }
