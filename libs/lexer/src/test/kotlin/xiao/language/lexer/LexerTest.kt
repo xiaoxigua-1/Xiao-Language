@@ -1,8 +1,6 @@
 package xiao.language.lexer
 
-import xiao.language.utilities.Keywords
-import xiao.language.utilities.Tokens
-import java.io.File
+import xiao.language.utilities.tokens.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -27,11 +25,11 @@ class LexerTest {
     @Test
     fun lexerLiteralTest() {
         val literals = listOf(
-            """"abc_ def 嗨 $#!"""", """'abc'"""
+            """"abc_ def 嗨 $#!"""", """"abc""""
         ).iterator()
         val lexer = Lexer(FileStream(literalTestFile))
 
-        lexerTest(lexer, Tokens.Literal, literals)
+        lexerTest(lexer, Tokens.Literal(Literal.String), literals)
     }
 
     @Test
@@ -47,11 +45,11 @@ class LexerTest {
     @Test
     fun lexerDelimiterTest() {
         val delimiters = listOf(
-            "{", "}", "[", "]", "(", ")"
-        ).iterator()
+            '{', '}', '[', ']', '(', ')'
+        ).map { Tokens.Delimiters(Delimiters.fromDelimiters(it)) }.iterator()
         val lexer = Lexer(FileStream(delimitersTestFile))
 
-        lexerTest(lexer, Tokens.Delimiters, delimiters)
+        lexerTypeTest(lexer, delimiters, listOf(Tokens.NewLine, Tokens.EOF, Tokens.Whitespace))
     }
 
     @Test
@@ -68,10 +66,10 @@ class LexerTest {
             "&",
             "&&",
             "!",
-        ).iterator()
+        ).map { Tokens.Punctuation(Punctuations.fromPunctuation(it)) }.iterator()
         val lexer = Lexer(FileStream(punctuationTestFile))
 
-        lexerTest(lexer, Tokens.Punctuation, punctuations)
+        lexerTypeTest(lexer, punctuations, listOf(Tokens.NewLine, Tokens.EOF, Tokens.Whitespace))
     }
 
     @Test
@@ -86,6 +84,14 @@ class LexerTest {
         for (token in lexer) {
             if (token.type == expectedType) {
                 assertEquals(expected.next(), token.value)
+            }
+        }
+    }
+
+    private fun lexerTypeTest(lexer: Lexer, expectedType: Iterator<Tokens>, skip: List<Tokens>) {
+        for (token in lexer) {
+            if (token.type !in skip) {
+                assertEquals(expectedType.next(), token.type)
             }
         }
     }

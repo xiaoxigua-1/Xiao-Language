@@ -6,8 +6,9 @@ package xiao.language.lexer
 import org.apache.commons.math3.exception.NotANumberException
 import xiao.language.utilities.*
 import xiao.language.utilities.exceptions.EOFException
+import xiao.language.utilities.tokens.*
 
-class Lexer(
+data class Lexer(
     val fileStream: FileStream
 ) : Iterator<Token> {
     private var isEOF = false
@@ -33,7 +34,12 @@ private fun Lexer.nextToken(): Token? {
             c == '"' || c == '\'' -> literal(fileStream.getIndex(), c)
             c == '#' -> rawLiteral(fileStream.getIndex())
             c in '0'..'9' -> number(fileStream.getIndex(), c)
-            c in Delimiters.delimiters -> Token(Tokens.Delimiters, c, Span(fileStream.getIndex()))
+            c in Delimiters.delimiters -> Token(
+                Tokens.Delimiters(Delimiters.fromDelimiters(c)),
+                c,
+                Span(fileStream.getIndex())
+            )
+
             c.isWhitespace() -> whitespace(fileStream.getIndex())
             c.isAsciiSymbol() && c != '_' -> punctuation(fileStream.getIndex(), c)
             else -> ident(fileStream.getIndex(), c)
@@ -64,17 +70,18 @@ private fun Lexer.punctuation(start: Int, startChar: Char): Token {
         else break
     } while (fileStream.hasNext())
 
-    return Token(Tokens.Punctuation, value, Span(start, fileStream.getIndex()))
+    return Token(Tokens.Punctuation(Punctuations.fromPunctuation(value)), value, Span(start, fileStream.getIndex()))
 }
 
 private fun Lexer.literal(start: Int, startChar: Char): Token {
+    var literalType = if (startChar == '"') Literal.String else Literal.Char
     var value = "$startChar"
 
     for (c in fileStream) {
         value += when (c) {
             startChar -> {
                 value += c
-                return Token(Tokens.Literal, value, Span(start, fileStream.getIndex()))
+                return Token(Tokens.Literal(literalType), value, Span(start, fileStream.getIndex()))
             }
 
             '\\' -> if (fileStream.hasNext()) fileStream.next().asEscaped() else break

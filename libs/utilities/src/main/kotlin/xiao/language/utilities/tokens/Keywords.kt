@@ -1,4 +1,4 @@
-package xiao.language.utilities
+package xiao.language.utilities.tokens
 
 enum class Keywords(val kwd: String) {
     Fn("fn"),
