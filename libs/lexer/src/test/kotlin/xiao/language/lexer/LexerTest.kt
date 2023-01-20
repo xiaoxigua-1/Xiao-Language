@@ -1,5 +1,6 @@
 package xiao.language.lexer
 
+import xiao.language.utilities.Keywords
 import xiao.language.utilities.Tokens
 import java.io.File
 import kotlin.test.Test
@@ -11,6 +12,7 @@ class LexerTest {
     private val numbersTestFile = FileStreamTest::class.java.getResource("/numbers.xiao")!!
     private val delimitersTestFile = FileStreamTest::class.java.getResource("/delimiters.xiao")!!
     private val punctuationTestFile = FileStreamTest::class.java.getResource("/punctuations.xiao")!!
+    private val keywordsTestFile = FileStream::class.java.getResource("/keywords.xiao")!!
 
     @Test
     fun lexerIdentTest() {
@@ -70,6 +72,14 @@ class LexerTest {
         val lexer = Lexer(FileStream(punctuationTestFile))
 
         lexerTest(lexer, Tokens.Punctuation, punctuations)
+    }
+
+    @Test
+    fun lexerKeywordsTest() {
+        val keywords = Keywords.keywords.iterator()
+        val lexer = Lexer(FileStream(keywordsTestFile))
+
+        lexerTest(lexer, Tokens.Keyword, keywords)
     }
 
     private fun lexerTest(lexer: Lexer, expectedType: Tokens, expected: Iterator<String>) {
