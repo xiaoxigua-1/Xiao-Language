@@ -6,9 +6,9 @@ enum class Tokens {
     Literal,
     RawLiteral,
     Number,
-    Symbol,
+    Punctuation,
     Whitespace,
     NewLine,
-    EOF,
     Delimiters,
+    EOF,
 }
