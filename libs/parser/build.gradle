@@ -28,6 +28,9 @@ dependencies {
     // This dependency is xiao language lexer
     implementation project(':libs:lexer')
 
+    // This dependency is xiao language utilities
+    implementation project(':libs:utilities')
+
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 
