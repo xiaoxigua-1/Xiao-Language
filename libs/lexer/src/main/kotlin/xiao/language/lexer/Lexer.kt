@@ -20,7 +20,7 @@ data class Lexer(
 
         return token ?: run {
             isEOF = true
-            Token(Tokens.EOF, '\u0000', Span(fileStream.getIndex()))
+            Token(Tokens.EOF, '\u0000', Span(fileStream.index))
         }
     }
 }
@@ -30,23 +30,21 @@ private fun Lexer.nextToken(): Token? {
         val c = fileStream.next()
 
         when {
-            c == '\n' -> Token(Tokens.NewLine, c, Span(fileStream.getIndex()))
-            c == '"' || c == '\'' -> literal(fileStream.getIndex(), c)
-            c == '#' -> rawLiteral(fileStream.getIndex())
-            c in '0'..'9' -> number(fileStream.getIndex(), c)
+            c == '\n' -> Token(Tokens.NewLine, c, Span(fileStream.index))
+            c == '"' || c == '\'' -> literal(fileStream.index, c)
+            c == '#' -> rawLiteral(fileStream.index)
+            c in '0'..'9' -> number(fileStream.index, c)
             c in Delimiters.delimiters -> Token(
                 Tokens.Delimiters(Delimiters.fromDelimiters(c)),
                 c,
-                Span(fileStream.getIndex())
+                Span(fileStream.index)
             )
 
-            c.isWhitespace() -> whitespace(fileStream.getIndex())
-            c.isAsciiSymbol() && c != '_' -> punctuation(fileStream.getIndex(), c)
-            else -> ident(fileStream.getIndex(), c)
+            c.isWhitespace() -> whitespace(fileStream.index)
+            c.isAsciiSymbol() && c != '_' -> punctuation(fileStream.index, c)
+            else -> ident(fileStream.index, c)
         }
-    } else {
-        null
-    }
+    } else null
 }
 
 private fun Lexer.whitespace(start: Int): Token {
@@ -58,7 +56,7 @@ private fun Lexer.whitespace(start: Int): Token {
         else break
     } while (fileStream.hasNext())
 
-    return Token(Tokens.Whitespace, value, Span(start, fileStream.getIndex()))
+    return Token(Tokens.Whitespace, value, Span(start, fileStream.index))
 }
 
 private fun Lexer.punctuation(start: Int, startChar: Char): Token {
@@ -70,18 +68,18 @@ private fun Lexer.punctuation(start: Int, startChar: Char): Token {
         else break
     } while (fileStream.hasNext())
 
-    return Token(Tokens.Punctuation(Punctuations.fromPunctuation(value)), value, Span(start, fileStream.getIndex()))
+    return Token(Tokens.Punctuation(Punctuations.fromPunctuation(value)), value, Span(start, fileStream.index))
 }
 
 private fun Lexer.literal(start: Int, startChar: Char): Token {
-    var literalType = if (startChar == '"') Literal.String else Literal.Char
+    val literalType = if (startChar == '"') Literal.String else Literal.Char
     var value = "$startChar"
 
     for (c in fileStream) {
         value += when (c) {
             startChar -> {
                 value += c
-                return Token(Tokens.Literal(literalType), value, Span(start, fileStream.getIndex()))
+                return Token(Tokens.Literal(literalType), value, Span(start, fileStream.index))
             }
 
             '\\' -> if (fileStream.hasNext()) fileStream.next().asEscaped() else break
@@ -98,7 +96,7 @@ private fun Lexer.rawLiteral(start: Int): Token {
 
     for (c in fileStream) {
         value += when (c) {
-            '#' -> return Token(Tokens.RawLiteral, value, Span(start, fileStream.getIndex()))
+            '#' -> return Token(Tokens.RawLiteral, value, Span(start, fileStream.index))
             else -> c
         }
     }
@@ -127,7 +125,7 @@ private fun Lexer.number(start: Int, startChar: Char): Token {
                 }
             } while (fileStream.hasNext())
 
-            Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
+            Token(Tokens.Number, value, Span(start, fileStream.index))
         }
     }
 }
@@ -141,11 +139,11 @@ private fun Lexer.otherNumberFormat(start: Int, startChar: Char, range: List<Cha
         when {
             c in range -> value += fileStream.next()
             c?.isWhitespace() ?: true -> break
-            else -> throw EOFException("Number format error", Span(start, fileStream.getIndex()))
+            else -> throw EOFException("Number format error", Span(start, fileStream.index))
         }
     } while (fileStream.hasNext())
 
-    return Token(Tokens.Number, value, Span(start, fileStream.getIndex()))
+    return Token(Tokens.Number, value, Span(start, fileStream.index))
 }
 
 private fun Lexer.ident(start: Int, startChar: Char): Token {
@@ -160,6 +158,6 @@ private fun Lexer.ident(start: Int, startChar: Char): Token {
     } while (fileStream.hasNext())
 
     return if (value in Keywords.keywords) {
-        Token(Tokens.Keyword, value, Span(start, fileStream.getIndex()))
-    } else Token(Tokens.Identifier, value, Span(start, fileStream.getIndex()))
+        Token(Tokens.Keyword(Keywords.fromKeywords(value)), value, Span(start, fileStream.index))
+    } else Token(Tokens.Identifier, value, Span(start, fileStream.index))
 }

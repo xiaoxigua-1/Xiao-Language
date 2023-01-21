@@ -74,10 +74,10 @@ class LexerTest {
 
     @Test
     fun lexerKeywordsTest() {
-        val keywords = Keywords.keywords.iterator()
+        val keywords = Keywords.values().map { Tokens.Keyword(it) }.iterator()
         val lexer = Lexer(FileStream(keywordsTestFile))
 
-        lexerTest(lexer, Tokens.Keyword, keywords)
+        lexerTypeTest(lexer, keywords, listOf(Tokens.EOF, Tokens.Whitespace, Tokens.NewLine))
     }
 
     private fun lexerTest(lexer: Lexer, expectedType: Tokens, expected: Iterator<String>) {

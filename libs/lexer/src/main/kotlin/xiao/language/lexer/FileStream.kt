@@ -8,7 +8,8 @@ class FileStream(
     private val file: File,
 ) : Iterator<Char> {
     private var content: String = ""
-    private var index: Int = 0
+    var index: Int = 0
+        private set
     val current: Char
         get() = content[index - 1]
 
