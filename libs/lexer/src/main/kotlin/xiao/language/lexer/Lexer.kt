@@ -9,7 +9,7 @@ import xiao.language.utilities.exceptions.EOFException
 import xiao.language.utilities.tokens.*
 
 data class Lexer(
-    val fileStream: FileStream
+    internal val fileStream: FileStream
 ) : Iterator<Token> {
     private var isEOF = false
 
