@@ -34,6 +34,4 @@ class FileStream(
     override fun next() = content[index++]
 
     fun peek(): Char? = if (hasNext()) content[index] else null
-
-    fun getIndex(): Int = index - 1
 }
