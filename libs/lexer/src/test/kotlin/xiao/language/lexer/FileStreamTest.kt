@@ -7,14 +7,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class FileStreamTest {
-    private val file = FileStreamTest::class.java.getResource("/test.xiao")
+    private val file = FileStreamTest::class.java.getResource("/test.xiao")!!
 
     @Test
     fun fileStreamTest() {
         val fileStream = FileStream(file)
         val all = file.readText()
         for (c in fileStream) {
-            assertEquals(all[fileStream.getIndex()], c)
+            assertEquals(all[fileStream.index], c)
         }
     }
 
