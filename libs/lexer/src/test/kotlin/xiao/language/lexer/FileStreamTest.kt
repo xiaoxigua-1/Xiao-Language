@@ -14,7 +14,7 @@ class FileStreamTest {
         val fileStream = FileStream(file)
         val all = file.readText()
         for (c in fileStream) {
-            assertEquals(all[fileStream.index], c)
+            assertEquals(all[fileStream.index - 1], c)
         }
     }
 
