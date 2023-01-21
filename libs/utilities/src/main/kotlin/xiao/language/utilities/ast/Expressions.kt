@@ -1,4 +1,4 @@
-package xiao.language.utilities.ast.expressions
+package xiao.language.utilities.ast
 
 sealed class Expressions {
 
