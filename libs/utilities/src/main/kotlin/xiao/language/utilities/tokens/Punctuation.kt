@@ -15,19 +15,8 @@ enum class Punctuations(val punctuation: String) {
     Comma(",");
 
     companion object {
-        fun fromPunctuation(punctuation: String): Punctuations = when (punctuation) {
-            "+" -> Plus
-            "-" -> Minus
-            "/" -> Slash
-            "::" -> PathSep
-            ":" -> Colon
-            "%" -> Percent
-            "!" -> Not
-            "&" -> And
-            "|" -> Or
-            "&&" -> AndAnd
-            "||" -> OrOr
-            else -> throw UnknownError("Unknown punctuation")
-        }
+        private val punctuationsMap = values().associateBy { it.punctuation }
+
+        fun fromPunctuation(punctuation: String): Punctuations = punctuationsMap[punctuation] ?: throw UnknownError()
     }
 }

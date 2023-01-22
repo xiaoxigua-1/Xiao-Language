@@ -10,15 +10,8 @@ enum class Delimiters(val delimiter: Char) {
 
     companion object {
         val delimiters = Delimiters.values().map { it.delimiter }
+        private val delimitersMap = Delimiters.values().associateBy { it.delimiter }
 
-        fun fromDelimiters(delim: Char): Delimiters = when (delim) {
-            '{' -> LeftCurlyBraces
-            '}' -> RightCurlyBraces
-            '[' -> LeftSquareBrackets
-            ']' -> RightSquareBrackets
-            '(' -> LeftParentheses
-            ')' -> RightParentheses
-            else -> throw UnknownError("Unknown delimiter")
-        }
+        fun fromDelimiters(delim: Char): Delimiters = delimitersMap[delim] ?: throw UnknownError("Unknown delimiter")
     }
 }
