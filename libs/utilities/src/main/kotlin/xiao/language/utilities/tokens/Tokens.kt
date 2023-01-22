@@ -9,6 +9,6 @@ sealed class Tokens {
     data class Punctuation(val punctuation: Punctuations) : Tokens()
     object Whitespace : Tokens()
     object NewLine : Tokens()
-    data class Delimiters(val type: xiao.language.utilities.tokens.Delimiters) : Tokens()
+    data class Delimiter(val type: Delimiters) : Tokens()
     object EOF : Tokens()
 }

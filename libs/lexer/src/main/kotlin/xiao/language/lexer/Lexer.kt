@@ -35,7 +35,7 @@ private fun Lexer.nextToken(): Token? {
             c == '#' -> rawLiteral(fileStream.index)
             c in '0'..'9' -> number(fileStream.index, c)
             c in Delimiters.delimiters -> Token(
-                Tokens.Delimiters(Delimiters.fromDelimiters(c)),
+                Tokens.Delimiter(Delimiters.fromDelimiters(c)),
                 c,
                 Span(fileStream.index)
             )

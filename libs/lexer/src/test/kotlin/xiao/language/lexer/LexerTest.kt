@@ -46,7 +46,7 @@ class LexerTest {
     fun lexerDelimiterTest() {
         val delimiters = listOf(
             '{', '}', '[', ']', '(', ')'
-        ).map { Tokens.Delimiters(Delimiters.fromDelimiters(it)) }.iterator()
+        ).map { Tokens.Delimiter(Delimiters.fromDelimiters(it)) }.iterator()
         val lexer = Lexer(FileStream(delimitersTestFile))
 
         lexerTypeTest(lexer, delimiters, listOf(Tokens.NewLine, Tokens.EOF, Tokens.Whitespace))
@@ -66,6 +66,7 @@ class LexerTest {
             "&",
             "&&",
             "!",
+            ","
         ).map { Tokens.Punctuation(Punctuations.fromPunctuation(it)) }.iterator()
         val lexer = Lexer(FileStream(punctuationTestFile))
 

@@ -11,7 +11,8 @@ enum class Punctuations(val punctuation: String) {
     And("&"),
     Or("|"),
     AndAnd("&&"),
-    OrOr("||");
+    OrOr("||"),
+    Comma(",");
 
     companion object {
         fun fromPunctuation(punctuation: String): Punctuations = when (punctuation) {
