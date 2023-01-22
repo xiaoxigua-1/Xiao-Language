@@ -5,7 +5,7 @@ package xiao.language.lexer
 
 import org.apache.commons.math3.exception.NotANumberException
 import xiao.language.utilities.*
-import xiao.language.utilities.exceptions.EOFException
+import xiao.language.utilities.exceptions.Exceptions.EOFException
 import xiao.language.utilities.tokens.*
 
 data class Lexer(

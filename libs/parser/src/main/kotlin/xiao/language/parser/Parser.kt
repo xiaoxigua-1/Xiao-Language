@@ -5,7 +5,6 @@ import xiao.language.parser.syntax.*
 import xiao.language.utilities.Token
 import xiao.language.utilities.ast.Statement
 import xiao.language.utilities.ast.Visibility
-import xiao.language.utilities.exceptions.EOFException
 import xiao.language.utilities.tokens.Keywords
 import xiao.language.utilities.tokens.Tokens
 import java.lang.Exception
