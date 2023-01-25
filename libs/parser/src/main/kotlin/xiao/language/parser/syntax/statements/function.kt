@@ -1,4 +1,4 @@
-package xiao.language.parser.syntax
+package xiao.language.parser.syntax.statements
 
 import xiao.language.parser.Parser
 import xiao.language.parser.expect
@@ -19,7 +19,9 @@ fun Parser.function(vis: Visibility, kwd: Token) {
 }
 
 fun Parser.parameter(span: Span): List<Parameter> {
-    val left = expect(Tokens.Delimiter(Delimiters.LeftParentheses), ExpectException("Missing left parentheses.", span))
+    val left = expect(Tokens.Delimiter(Delimiters.LeftParentheses),
+        ExpectException("Missing left parentheses.", span)
+    )
     val params = mutableListOf<Parameter>()
     var comma: Token? = null
 
