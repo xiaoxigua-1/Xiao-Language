@@ -13,6 +13,16 @@ class LexerTest {
     private val keywordsTestFile = FileStream::class.java.getResource("/keywords.xiao")!!
 
     @Test
+    fun testPeek() {
+        val lexer = Lexer(FileStream(identTestFile))
+        while (lexer.hasNext()) {
+            val peek = lexer.peek()
+            val next = lexer.next()
+            assertEquals(peek, next)
+        }
+    }
+
+    @Test
     fun lexerIdentTest() {
         val idents = listOf(
             "__test__", "__test", "test", "test__", "__哈摟__", "__哈摟", "哈摟", "哈摟__"
