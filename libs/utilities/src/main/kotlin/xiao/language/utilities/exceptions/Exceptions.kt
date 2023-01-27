@@ -7,5 +7,9 @@ sealed class Exceptions: Exception() {
 
     data class EOFException(override val message: String): Exceptions()
 
+    data class NumberFormatException(override val message: String, override val span: Span?): Exceptions()
+
+    data class UnterminatedException(override val message: String, override val span: Span?): Exceptions()
+
     data class ExpectException(override val message: String, override val span: Span): Exceptions()
 }
