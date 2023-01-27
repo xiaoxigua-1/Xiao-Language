@@ -96,8 +96,6 @@ class LexerTest {
             if (token.type == expectedType) {
                 assertEquals(expected.next(), token.value)
             }
-
-            println(token)
         }
     }
 
