@@ -33,8 +33,8 @@ data class Lexer(
 
     fun peek(): Token {
         return peek ?: run {
-            peek = next()
-            peek!!
+            peek = nextToken()
+            peek ?: Token(Tokens.EOF, '\u0000', Span(fileStream.index))
         }
     }
 }
