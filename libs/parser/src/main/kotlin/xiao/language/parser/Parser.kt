@@ -1,6 +1,7 @@
 package xiao.language.parser
 
 import xiao.language.lexer.Lexer
+import xiao.language.parser.syntax.expressions
 import xiao.language.parser.syntax.statements.function
 import xiao.language.utilities.Token
 import xiao.language.utilities.ast.Statement
@@ -19,29 +20,32 @@ data class Parser(val lexer: Lexer) : Iterator<Statement> {
     }
 }
 
-fun Parser.nextStatement() {
+fun Parser.statements(): Statement {
     if (lexer.hasNext()) {
         val token = lexer.next()
-        when (val type = token.type) {
+        return when (val type = token.type) {
             is Tokens.Keyword -> keyword(type.type, token)
-            else -> {}
+            else -> Statement.Expression(expressions())
         }
-    } else {
-    }
+    } else throw Exceptions.EOFException("EOF")
 }
 
 internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
     for (token in lexer) {
-        return if (token.type == type) token
-        else throw Exceptions.ExpectException(exception.message!!, exception.span ?: token.span)
+        println(token.type)
+        when (token.type) {
+            Tokens.Whitespace -> continue
+            type -> return token
+            else -> throw Exceptions.ExpectException(exception.message!!, exception.span ?: token.span)
+        }
     }
 
     throw exception
 }
 
-private fun Parser.keyword(kwdType: Keywords, kwd: Token) {
-    when (kwdType) {
+private fun Parser.keyword(kwdType: Keywords, kwd: Token): Statement {
+    return when (kwdType) {
         Keywords.Fn -> function(Visibility.Private, kwd)
-        else -> {}
+        else -> throw Exceptions.EOFException("")
     }
 }

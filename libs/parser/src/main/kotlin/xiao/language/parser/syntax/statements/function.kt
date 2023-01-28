@@ -2,6 +2,7 @@ package xiao.language.parser.syntax.statements
 
 import xiao.language.parser.Parser
 import xiao.language.parser.expect
+import xiao.language.parser.syntax.expressions
 import xiao.language.utilities.Span
 import xiao.language.utilities.Token
 import xiao.language.utilities.ast.Parameter
@@ -12,10 +13,10 @@ import xiao.language.utilities.tokens.Delimiters
 import xiao.language.utilities.tokens.Punctuations
 import xiao.language.utilities.tokens.Tokens
 
-fun Parser.function(vis: Visibility, kwd: Token) {
-    val name = expect(Tokens.Identifier, ExpectException("Missing function name.", kwd.span))
+fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
+    val name = expressions()
     val params = parameter(name.span)
-    Statement.Function(vis, kwd, name, params)
+    return Statement.Function(vis, kwd, name, params)
 }
 
 fun Parser.parameter(span: Span): List<Parameter> {
@@ -33,7 +34,7 @@ fun Parser.parameter(span: Span): List<Parameter> {
             else -> {
                 val name = expect(Tokens.Identifier, ExpectException("Missing parameter name.", comma!!.span))
                 val colon = expect(Tokens.Punctuation(Punctuations.Colon), ExpectException("Missing Colon.", name.span))
-                val parameterType = expect(Tokens.Identifier, ExpectException("Missing parameter type.", colon.span))
+                val parameterType = expressions()
 
                 params.add(Parameter(name, colon, parameterType))
                 null
