@@ -7,8 +7,9 @@ import kotlin.test.Test
 
 class ParserTest {
     @Test fun parserFunctionTest() {
-        val lexer = Lexer(FileStream("fn Test::test()"))
+        val lexer = Lexer(FileStream("fn Test::test() {}"))
         val parser = Parser(lexer)
-        parser.statements()
+        val function = parser.statements()
+        println(function)
     }
 }

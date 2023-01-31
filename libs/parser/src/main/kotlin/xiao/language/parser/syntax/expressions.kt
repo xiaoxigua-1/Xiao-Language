@@ -19,7 +19,10 @@ fun Parser.expressions(): Expressions {
         return when {
             type is Tokens.Whitespace -> continue
             type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.PathSep) -> path(token)
-            type is Tokens.Literal || type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(token)
+            type is Tokens.Literal || type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(
+                token
+            )
+
             type is Tokens.Identifier -> Expressions.Identifier(token, token.span)
             type == Tokens.Delimiter(Delimiters.LeftCurlyBraces) -> block(token)
             else -> throw Exceptions.ExpectException("Not expression ${token.type}", token.span)
@@ -49,8 +52,19 @@ fun Parser.block(left: Token): Expressions.Block {
     val statements = mutableListOf<Statement>()
     for (token in lexer) {
         when (token.type) {
-            Tokens.Delimiter(Delimiters.RightCurlyBraces) -> return Expressions.Block(left, listOf(), token, Span(left.span.start, token.span.end))
-            else -> statements.add(statements())
+            is Tokens.Whitespace -> continue
+            Tokens.Delimiter(Delimiters.RightCurlyBraces) -> return Expressions.Block(
+                left,
+                listOf(),
+                token,
+                Span(left.span.start, token.span.end)
+            )
+
+            else -> try {
+                statements.add(statements())
+            } catch (e: Exception) {
+                break
+            }
         }
     }
 

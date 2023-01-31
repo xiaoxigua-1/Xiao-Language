@@ -2,12 +2,12 @@ package xiao.language.parser.syntax.statements
 
 import xiao.language.parser.Parser
 import xiao.language.parser.expect
+import xiao.language.parser.syntax.block
 import xiao.language.parser.syntax.expressions
 import xiao.language.utilities.Span
 import xiao.language.utilities.Token
-import xiao.language.utilities.ast.Parameter
-import xiao.language.utilities.ast.Statement
-import xiao.language.utilities.ast.Visibility
+import xiao.language.utilities.ast.*
+import xiao.language.utilities.exceptions.Exceptions
 import xiao.language.utilities.exceptions.Exceptions.ExpectException
 import xiao.language.utilities.tokens.Delimiters
 import xiao.language.utilities.tokens.Punctuations
@@ -16,10 +16,12 @@ import xiao.language.utilities.tokens.Tokens
 fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
     val name = expressions()
     val params = parameter(name.span)
-    return Statement.Function(vis, kwd, name, params)
+    val blockExpression = expressions()
+    val block = if (blockExpression is Expressions.Block) blockExpression else throw ExpectException("Block", params.right.span)
+    return Statement.Function(vis, kwd, name, params, block)
 }
 
-fun Parser.parameter(span: Span): List<Parameter> {
+fun Parser.parameter(span: Span): Parameters {
     val left = expect(Tokens.Delimiter(Delimiters.LeftParentheses),
         ExpectException("Missing left parentheses.", span)
     )
@@ -29,7 +31,7 @@ fun Parser.parameter(span: Span): List<Parameter> {
     for (token in lexer) {
         val type = token.type
         comma = when {
-            type is Tokens.Delimiter && type.type == Delimiters.RightParentheses -> return params
+            type is Tokens.Delimiter && type.type == Delimiters.RightParentheses -> return Parameters(left, params, token)
             type is Tokens.Punctuation && type.punctuation == Punctuations.Comma && comma == null -> token
             else -> {
                 val name = expect(Tokens.Identifier, ExpectException("Missing parameter name.", comma!!.span))
