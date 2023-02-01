@@ -78,10 +78,9 @@ private fun Lexer.punctuation(start: Int, startChar: Char): Token {
 
     do {
         val c = fileStream.peek()
-        if (c?.isAsciiSymbol() == true) value += fileStream.next()
+        if (c?.isAsciiSymbol() == true && "$value$c" in Punctuations.punctuations) value += fileStream.next()
         else break
     } while (fileStream.hasNext())
-
     return Token(Tokens.Punctuation(Punctuations.fromPunctuation(value)), value, Span(start, fileStream.index))
 }
 
