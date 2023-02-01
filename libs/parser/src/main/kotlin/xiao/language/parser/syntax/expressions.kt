@@ -34,7 +34,7 @@ fun Parser.expressions(): Expressions {
 
 fun Parser.path(token: Token): Expressions.Path {
     val main = Expressions.Identifier(token, token.span)
-    expect(Tokens.Punctuation(Punctuations.PathSep), Exceptions.ExpectException("::", main.name.span))
+    expect(Tokens.Punctuation(Punctuations.PathSep), Exceptions.ExpectException("Exception `::`", main.name.span))
     val expression = expressions()
 
     return Expressions.Path(main, expression, Span(token.span.start, expression.span.end))
@@ -42,7 +42,7 @@ fun Parser.path(token: Token): Expressions.Path {
 
 fun Parser.sub(token: Token): Expressions.Sub {
     val main = Expressions.Identifier(token, token.span)
-    expect(Tokens.Punctuation(Punctuations.Colon), Exceptions.ExpectException("::", main.name.span))
+    expect(Tokens.Punctuation(Punctuations.Colon), Exceptions.ExpectException("Exception `.`", main.name.span))
     val expression = expressions()
 
     return Expressions.Sub(main, expression, Span(token.span.start, expression.span.end))
@@ -50,23 +50,25 @@ fun Parser.sub(token: Token): Expressions.Sub {
 
 fun Parser.block(left: Token): Expressions.Block {
     val statements = mutableListOf<Statement>()
-    for (token in lexer) {
+    do {
+        val token = lexer.peek()
         when (token.type) {
             is Tokens.Whitespace -> continue
             Tokens.Delimiter(Delimiters.RightCurlyBraces) -> return Expressions.Block(
                 left,
                 listOf(),
-                token,
+                lexer.next(),
                 Span(left.span.start, token.span.end)
             )
 
             else -> try {
                 statements.add(statements())
             } catch (e: Exception) {
+                println(e)
                 break
             }
         }
-    }
+    } while (lexer.hasNext())
 
     throw Exceptions.UnterminatedException("Unterminated block", left.span)
 }

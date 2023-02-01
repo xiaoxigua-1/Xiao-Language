@@ -8,6 +8,7 @@ import xiao.language.utilities.ast.Statement
 import xiao.language.utilities.ast.Visibility
 import xiao.language.utilities.exceptions.Exceptions
 import xiao.language.utilities.tokens.Keywords
+import xiao.language.utilities.tokens.Punctuations
 import xiao.language.utilities.tokens.Tokens
 
 data class Parser(val lexer: Lexer) : Iterator<Statement> {
@@ -22,17 +23,20 @@ data class Parser(val lexer: Lexer) : Iterator<Statement> {
 
 fun Parser.statements(): Statement {
     if (lexer.hasNext()) {
-        val token = lexer.next()
+        val token = lexer.peek()
         return when (val type = token.type) {
-            is Tokens.Keyword -> keyword(type.type, token)
-            else -> Statement.Expression(expressions())
+            is Tokens.Keyword -> keyword(type.type, lexer.next())
+            else -> {
+                val statement = Statement.Expression(expressions())
+                expect(Tokens.Punctuation(Punctuations.Semi), Exceptions.ExpectException("Missing `;`", statement.span))
+                statement
+            }
         }
     } else throw Exceptions.EOFException("EOF")
 }
 
 internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
     for (token in lexer) {
-        println(token.type)
         when (token.type) {
             Tokens.Whitespace -> continue
             type -> return token
