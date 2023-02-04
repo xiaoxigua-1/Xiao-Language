@@ -37,7 +37,8 @@ fun Parser.expressions(): Expressions {
  * parse call expression function
  */
 fun Parser.call(name: Token): Expressions.Call {
-    val left = expect(Tokens.Delimiter(Delimiters.LeftParentheses), Exceptions.ExpectException("Exception `(`", name.span))
+    val left =
+        expect(Tokens.Delimiter(Delimiters.LeftParentheses), Exceptions.ExpectException("Exception `(`", name.span))
     var comma: Token? = null
     val args = mutableListOf<Expressions>()
 
@@ -45,8 +46,15 @@ fun Parser.call(name: Token): Expressions.Call {
         val token = lexer.peek()
 
         when (token.type) {
-            Tokens.Delimiter(Delimiters.RightParentheses) -> return Expressions.Call(name, listOf(), Span(name.span.start, lexer.next().span.end))
-            Tokens.Punctuation(Punctuations.Comma) -> if (comma == null) comma = lexer.next() else throw Exceptions.ExpectException("Expect expression, found `,`", token.span)
+            Tokens.Delimiter(Delimiters.RightParentheses) -> return Expressions.Call(
+                name,
+                listOf(),
+                Span(name.span.start, lexer.next().span.end)
+            )
+
+            Tokens.Punctuation(Punctuations.Comma) -> if (comma == null) comma =
+                lexer.next() else throw Exceptions.ExpectException("Expect expression, found `,`", token.span)
+
             else -> {
                 comma = null
                 args.add(expressions())
@@ -91,6 +99,7 @@ fun Parser.block(left: Token): Expressions.Block {
                 lexer.next()
                 continue
             }
+
             Tokens.Delimiter(Delimiters.RightCurlyBraces) -> return Expressions.Block(
                 left,
                 statements,
