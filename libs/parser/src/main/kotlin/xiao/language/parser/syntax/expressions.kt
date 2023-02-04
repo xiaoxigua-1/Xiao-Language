@@ -19,6 +19,7 @@ fun Parser.expressions(): Expressions {
         return when {
             type is Tokens.Whitespace -> continue
             type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.PathSep) -> path(token)
+            type is Tokens.Identifier && lexer.peek().type == Tokens.Delimiter(Delimiters.LeftParentheses) -> call(token)
             type is Tokens.Literal || type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(
                 token
             )
@@ -32,43 +33,73 @@ fun Parser.expressions(): Expressions {
     throw Exceptions.EOFException("Expect expression")
 }
 
+/**
+ * parse call expression function
+ */
+fun Parser.call(name: Token): Expressions.Call {
+    val left = expect(Tokens.Delimiter(Delimiters.LeftParentheses), Exceptions.ExpectException("Exception `(`", name.span))
+    var comma: Token? = null
+    val args = mutableListOf<Expressions>()
+
+    while (lexer.hasNext()) {
+        val token = lexer.peek()
+
+        when (token.type) {
+            Tokens.Delimiter(Delimiters.RightParentheses) -> return Expressions.Call(name, listOf(), Span(name.span.start, lexer.next().span.end))
+            Tokens.Punctuation(Punctuations.Comma) -> if (comma == null) comma = lexer.next() else throw Exceptions.ExpectException("Expect expression, found `,`", token.span)
+            else -> {
+                comma = null
+                args.add(expressions())
+            }
+        }
+    }
+
+    throw Exceptions.UnterminatedException("Unterminated delimiter", left.span)
+}
+
+/**
+ * parse path expression function
+ */
 fun Parser.path(token: Token): Expressions.Path {
     val main = Expressions.Identifier(token, token.span)
     expect(Tokens.Punctuation(Punctuations.PathSep), Exceptions.ExpectException("Exception `::`", main.name.span))
     val expression = expressions()
 
-    return Expressions.Path(main, expression, Span(token.span.start, expression.span.end))
+    return Expressions.Path(main, expression)
 }
 
+/**
+ * parse sub expression function
+ */
 fun Parser.sub(token: Token): Expressions.Sub {
     val main = Expressions.Identifier(token, token.span)
     expect(Tokens.Punctuation(Punctuations.Colon), Exceptions.ExpectException("Exception `.`", main.name.span))
     val expression = expressions()
 
-    return Expressions.Sub(main, expression, Span(token.span.start, expression.span.end))
+    return Expressions.Sub(main, expression)
 }
 
+/**
+ * parse block expression function
+ */
 fun Parser.block(left: Token): Expressions.Block {
     val statements = mutableListOf<Statement>()
-    do {
+    while (lexer.hasNext()) {
         val token = lexer.peek()
         when (token.type) {
-            is Tokens.Whitespace -> continue
+            Tokens.Whitespace, Tokens.NewLine -> {
+                lexer.next()
+                continue
+            }
             Tokens.Delimiter(Delimiters.RightCurlyBraces) -> return Expressions.Block(
                 left,
-                listOf(),
-                lexer.next(),
-                Span(left.span.start, token.span.end)
+                statements,
+                lexer.next()
             )
 
-            else -> try {
-                statements.add(statements())
-            } catch (e: Exception) {
-                println(e)
-                break
-            }
+            else -> statements.add(statements() ?: break)
         }
-    } while (lexer.hasNext())
+    }
 
     throw Exceptions.UnterminatedException("Unterminated block", left.span)
 }

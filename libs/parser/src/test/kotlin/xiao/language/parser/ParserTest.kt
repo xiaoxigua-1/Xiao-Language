@@ -8,10 +8,10 @@ import kotlin.test.Test
 class ParserTest {
     @Test
     fun parserFunctionTest() {
-        val lexer = Lexer(FileStream("fn Test::test() {{};Test::test;}"))
+        val lexer = Lexer(FileStream("fn Test::test() {\n{test();}; \nTest::test; \n}"))
         val parser = Parser(lexer)
-        val function = parser.statements()
-        println(function)
+        val function = parser.next()
         assert(function is Statement.Function)
+        println(parser.hasNext())
     }
 }

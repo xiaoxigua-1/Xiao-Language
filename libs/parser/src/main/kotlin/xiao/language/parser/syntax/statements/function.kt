@@ -12,14 +12,38 @@ import xiao.language.utilities.tokens.Punctuations
 import xiao.language.utilities.tokens.Tokens
 
 fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
-    val name = expressions()
+    val name = functionName(kwd.span)
     val params = parameter(name.span)
     val blockExpression = expressions()
     val block =
         if (blockExpression is Expressions.Block) blockExpression else throw ExpectException("Block", params.right.span)
-    return Statement.Function(vis, kwd, name, params, block, Span(kwd.span.start, block.span.end))
+    return Statement.Function(vis, kwd, name, params, block)
 }
 
+/**
+ * parse function **name**  is path or identifier
+ */
+fun Parser.functionName(span: Span): Expressions {
+    val token = expect(Tokens.Identifier, ExpectException("Expect identifier", span))
+
+    return when (lexer.peek().type) {
+        Tokens.Punctuation(Punctuations.PathSep) -> {
+            expect(Tokens.Punctuation(Punctuations.PathSep), ExpectException("", token.span))
+            Expressions.Path(Expressions.Identifier(token), Expressions.Identifier(lexer.next()))
+        }
+
+        else -> Expressions.Identifier(token, token.span)
+    }
+}
+
+/**
+ * parse function parameters
+ *
+ * ### **Example:**
+ * ```
+ *  (test: Test, test2: Test2)
+ * ```
+ */
 fun Parser.parameter(span: Span): Parameters {
     val left = expect(
         Tokens.Delimiter(Delimiters.LeftParentheses), ExpectException("Missing left parentheses.", span)

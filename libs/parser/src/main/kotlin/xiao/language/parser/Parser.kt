@@ -12,19 +12,17 @@ import xiao.language.utilities.tokens.Punctuations
 import xiao.language.utilities.tokens.Tokens
 
 data class Parser(val lexer: Lexer) : Iterator<Statement> {
-    private var isEOF = false
-
-    override fun hasNext(): Boolean = !isEOF
+    override fun hasNext(): Boolean = lexer.peek().type !is Tokens.EOF
 
     override fun next(): Statement {
-        TODO("next statement")
+        return statements()!!
     }
 }
 
-fun Parser.statements(): Statement {
-    if (lexer.hasNext()) {
+fun Parser.statements(): Statement? {
+    return if (lexer.hasNext()) {
         val token = lexer.peek()
-        return when (val type = token.type) {
+        when (val type = token.type) {
             is Tokens.Keyword -> keyword(type.type, lexer.next())
             else -> {
                 val statement = Statement.Expression(expressions())
@@ -32,13 +30,13 @@ fun Parser.statements(): Statement {
                 statement
             }
         }
-    } else throw Exceptions.EOFException("EOF")
+    } else null
 }
 
 internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
     for (token in lexer) {
         when (token.type) {
-            Tokens.Whitespace -> continue
+            Tokens.Whitespace, Tokens.NewLine -> continue
             type -> return token
             else -> throw Exceptions.ExpectException(exception.message!!, exception.span ?: token.span)
         }
