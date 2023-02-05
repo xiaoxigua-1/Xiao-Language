@@ -14,6 +14,8 @@ sealed class Expressions {
 
     data class Identifier(val name: Token, override val span: Span = name.span) : Expressions()
 
+    data class String(val value: Token, override val span: Span = value.span) : Expressions()
+
     data class Sub(
         val main: Expressions,
         val sub: Expressions,
@@ -27,5 +29,11 @@ sealed class Expressions {
         val statements: List<Statement>,
         val right: Token,
         override val span: Span = Span(left.span.start, right.span.end)
+    ) : Expressions()
+
+    data class EqValue(
+        val eq: Token,
+        val value: Expressions,
+        override val span: Span = Span(eq.span.start, value.span.end)
     ) : Expressions()
 }

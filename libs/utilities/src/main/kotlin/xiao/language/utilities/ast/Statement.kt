@@ -11,7 +11,7 @@ sealed class Statement {
         val kwd: Token,
         val name: Expressions,
         val parameter: Parameters,
-        val block: Expressions.Block,
+        val block: Expressions,
         override val span: Span = Span(kwd.span.start, block.span.end)
     ) : Statement()
 

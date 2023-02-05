@@ -21,8 +21,15 @@ data class Parser(val lexer: Lexer) : Iterator<Statement> {
 
 fun Parser.statements(): Statement? {
     return if (lexer.hasNext()) {
-        val token = lexer.peek()
-        when (val type = token.type) {
+        while (lexer.hasNext()) {
+            val token = lexer.peek()
+            when (token.type) {
+                is Tokens.Whitespace, is Tokens.NewLine -> lexer.next()
+                else -> break
+            }
+        }
+
+        when (val type = lexer.peek().type) {
             is Tokens.Keyword -> keyword(type.type, lexer.next())
             else -> {
                 val statement = Statement.Expression(expressions())
@@ -38,7 +45,7 @@ internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
         when (token.type) {
             Tokens.Whitespace, Tokens.NewLine -> continue
             type -> return token
-            else -> throw Exceptions.ExpectException(exception.message!!, exception.span ?: token.span)
+            else -> throw Exceptions.ExpectException("${exception.message!!}, found `${token.type}`", exception.span ?: token.span)
         }
     }
 

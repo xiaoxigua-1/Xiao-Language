@@ -1,0 +1,5 @@
+fn Test::test() {}
+
+fn test() {}
+
+fn test() = "123"

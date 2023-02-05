@@ -13,7 +13,8 @@ enum class Punctuations(val punctuation: String) {
     AndAnd("&&"),
     OrOr("||"),
     Comma(","),
-    Semi(";");
+    Semi(";"),
+    Eq("=");
 
     companion object {
         val punctuations = values().map { it.punctuation }

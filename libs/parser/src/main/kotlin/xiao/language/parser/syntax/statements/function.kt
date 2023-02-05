@@ -14,14 +14,15 @@ import xiao.language.utilities.tokens.Tokens
 fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
     val name = functionName(kwd.span)
     val params = parameter(name.span)
-    val blockExpression = expressions()
-    val block =
-        if (blockExpression is Expressions.Block) blockExpression else throw ExpectException("Block", params.right.span)
+    val block = functionBlock(params.right.span)
     return Statement.Function(vis, kwd, name, params, block)
 }
 
 /**
  * parse function **name**  is path or identifier
+ * ### **Example**
+ *  - Test::test
+ *  - test
  */
 fun Parser.functionName(span: Span): Expressions {
     val token = expect(Tokens.Identifier, ExpectException("Expect identifier", span))
@@ -71,4 +72,11 @@ fun Parser.parameter(span: Span): Parameters {
     }
 
     throw ExpectException("Unclosed delimiter", left.span)
+}
+
+fun Parser.functionBlock(span: Span): Expressions {
+    when (val expression = expressions()) {
+        is Expressions.Block, is Expressions.EqValue -> return expression
+        else -> throw ExpectException("Expect Block", span)
+    }
 }

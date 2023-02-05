@@ -6,7 +6,9 @@ enum class Keywords(val kwd: String) {
     Mutable("mut"),
     Self("self"),
     Use("use"),
-    Pub("pub");
+    Pub("pub"),
+    For("for"),
+    If("if");
 
     companion object {
         val keywords = Keywords.values().map { it.kwd }

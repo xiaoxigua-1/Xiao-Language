@@ -17,14 +17,16 @@ fun Parser.expressions(): Expressions {
         val type = token.type
 
         return when {
-            type is Tokens.Whitespace -> continue
+            type is Tokens.Whitespace || type is Tokens.NewLine -> continue
             type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.PathSep) -> path(token)
             type is Tokens.Identifier && lexer.peek().type == Tokens.Delimiter(Delimiters.LeftParentheses) -> call(token)
-            type is Tokens.Literal || type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(
+            type is Tokens.Literal && type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(
                 token
             )
 
+            type is Tokens.Literal -> Expressions.String(token)
             type is Tokens.Identifier -> Expressions.Identifier(token, token.span)
+            type == Tokens.Punctuation(Punctuations.Eq) -> eqValue(token)
             type == Tokens.Delimiter(Delimiters.LeftCurlyBraces) -> block(token)
             else -> throw Exceptions.ExpectException("Not expression ${token.type}", token.span)
         }
@@ -111,4 +113,8 @@ fun Parser.block(left: Token): Expressions.Block {
     }
 
     throw Exceptions.UnterminatedException("Unterminated block", left.span)
+}
+
+fun Parser.eqValue(eq: Token): Expressions.EqValue {
+    return Expressions.EqValue(eq, expressions())
 }

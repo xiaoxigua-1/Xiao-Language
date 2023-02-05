@@ -6,12 +6,15 @@ import xiao.language.utilities.ast.Statement
 import kotlin.test.Test
 
 class ParserTest {
+    private val functionsFile = Parser::class.java.getResource("/functions.xiao")!!
+
     @Test
     fun parserFunctionTest() {
-        val lexer = Lexer(FileStream("fn Test::test() {\n{test();}; \nTest::test; \n}"))
+        val lexer = Lexer(FileStream(functionsFile))
         val parser = Parser(lexer)
-        val function = parser.next()
-        assert(function is Statement.Function)
-        println(parser.hasNext())
+        for (function in parser) {
+            println(function)
+            assert(function is Statement.Function)
+        }
     }
 }
