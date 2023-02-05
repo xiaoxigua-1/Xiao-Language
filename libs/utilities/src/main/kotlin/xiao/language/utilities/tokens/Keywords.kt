@@ -14,6 +14,7 @@ enum class Keywords(val kwd: String) {
         val keywords = Keywords.values().map { it.kwd }
         private val keywordsMap = values().associateBy { it.kwd }
 
-        fun fromKeywords(keyword: String): Keywords = keywordsMap[keyword] ?: throw UnknownError("Unknown keyword: $keyword")
+        fun fromKeywords(keyword: String): Keywords =
+            keywordsMap[keyword] ?: throw UnknownError("Unknown keyword: $keyword")
     }
 }

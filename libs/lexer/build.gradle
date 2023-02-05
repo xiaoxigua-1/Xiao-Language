@@ -7,7 +7,7 @@
  */
 
 plugins {
-   id 'xiao.language.kotlin-library-conventions'
+    id 'xiao.language.kotlin-library-conventions'
 }
 
 repositories {

@@ -4,8 +4,11 @@
 package xiao.language.lexer
 
 import org.apache.commons.math3.exception.NotANumberException
-import xiao.language.utilities.*
+import xiao.language.utilities.Span
+import xiao.language.utilities.Token
+import xiao.language.utilities.asEscaped
 import xiao.language.utilities.exceptions.Exceptions
+import xiao.language.utilities.isAsciiSymbol
 import xiao.language.utilities.tokens.*
 
 data class Lexer(
