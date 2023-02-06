@@ -3,6 +3,7 @@ package xiao.language.parser
 import xiao.language.lexer.Lexer
 import xiao.language.parser.syntax.expressions
 import xiao.language.parser.syntax.statements.function
+import xiao.language.parser.syntax.statements.returnStatement
 import xiao.language.utilities.Token
 import xiao.language.utilities.ast.Statement
 import xiao.language.utilities.ast.Visibility
@@ -58,6 +59,7 @@ internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
 private fun Parser.keyword(kwdType: Keywords, kwd: Token): Statement {
     return when (kwdType) {
         Keywords.Fn -> function(Visibility.Private, kwd)
+        Keywords.Return -> returnStatement(kwd)
         else -> throw Exceptions.EOFException("")
     }
 }

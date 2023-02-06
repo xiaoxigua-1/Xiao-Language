@@ -8,7 +8,8 @@ enum class Keywords(val kwd: String) {
     Use("use"),
     Pub("pub"),
     For("for"),
-    If("if");
+    If("if"),
+    Return("ret");
 
     companion object {
         val keywords = Keywords.values().map { it.kwd }

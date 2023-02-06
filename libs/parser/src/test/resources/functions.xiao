@@ -1,5 +1,9 @@
-fn Test::test() {}
+fn Test::test() {
 
-fn test() {}
+}
+
+fn test() {
+    ret "123"
+}
 
 fn test() = "123"

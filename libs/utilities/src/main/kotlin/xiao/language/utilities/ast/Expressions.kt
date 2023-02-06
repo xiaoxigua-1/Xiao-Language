@@ -30,10 +30,4 @@ sealed class Expressions {
         val right: Token,
         override val span: Span = Span(left.span.start, right.span.end)
     ) : Expressions()
-
-    data class EqValue(
-        val eq: Token,
-        val value: Expressions,
-        override val span: Span = Span(eq.span.start, value.span.end)
-    ) : Expressions()
 }

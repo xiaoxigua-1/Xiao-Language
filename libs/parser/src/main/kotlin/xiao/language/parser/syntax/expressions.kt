@@ -26,7 +26,6 @@ fun Parser.expressions(): Expressions {
 
             type is Tokens.Literal -> Expressions.String(token)
             type is Tokens.Identifier -> Expressions.Identifier(token, token.span)
-            type == Tokens.Punctuation(Punctuations.Eq) -> eqValue(token)
             type == Tokens.Delimiter(Delimiters.LeftCurlyBraces) -> block(token)
             else -> throw Exceptions.ExpectException("Not expression ${token.type}", token.span)
         }
@@ -113,8 +112,4 @@ fun Parser.block(left: Token): Expressions.Block {
     }
 
     throw Exceptions.UnterminatedException("Unterminated block", left.span)
-}
-
-fun Parser.eqValue(eq: Token): Expressions.EqValue {
-    return Expressions.EqValue(eq, expressions())
 }

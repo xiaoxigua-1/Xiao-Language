@@ -14,8 +14,9 @@ import xiao.language.utilities.tokens.Tokens
 fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
     val name = functionName(kwd.span)
     val params = parameter(name.span)
+    val returnType = functionReturnType()
     val block = functionBlock(params.right.span)
-    return Statement.Function(vis, kwd, name, params, block)
+    return Statement.Function(vis, kwd, name, params, returnType, block)
 }
 
 /**
@@ -74,9 +75,33 @@ fun Parser.parameter(span: Span): Parameters {
     throw ExpectException("Unclosed delimiter", left.span)
 }
 
-fun Parser.functionBlock(span: Span): Expressions {
-    when (val expression = expressions()) {
-        is Expressions.Block, is Expressions.EqValue -> return expression
-        else -> throw ExpectException("Expect Block", span)
+fun Parser.functionReturnType(): Expressions? {
+    while (lexer.hasNext()) {
+        val peekToken = lexer.peek()
+
+        when (peekToken.type) {
+            Tokens.Whitespace, Tokens.NewLine -> lexer.next()
+            Tokens.Punctuation(Punctuations.Colon) -> {}
+            else -> break
+        }
     }
+
+    return null
+}
+
+fun Parser.functionBlock(span: Span): Expressions {
+    while (lexer.hasNext()) {
+        val peekToken = lexer.peek()
+
+        when (peekToken.type) {
+            Tokens.Whitespace, Tokens.NewLine -> lexer.next()
+            Tokens.Punctuation(Punctuations.Eq) -> {
+                expect(Tokens.Punctuation(Punctuations.Eq), ExpectException("Expect `=`", span))
+                return expressions()
+            }
+            else -> return expressions()
+        }
+    }
+
+    throw ExpectException("Block expression", span)
 }
