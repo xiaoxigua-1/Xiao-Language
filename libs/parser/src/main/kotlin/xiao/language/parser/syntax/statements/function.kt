@@ -11,6 +11,20 @@ import xiao.language.utilities.tokens.Delimiters
 import xiao.language.utilities.tokens.Punctuations
 import xiao.language.utilities.tokens.Tokens
 
+/**
+ * parser function statement
+ * ### Example
+ * ```
+ * fn test() {
+ *     println("");
+ * }
+ *
+ * fn Test::test() {
+ *     println("");
+ * }
+ *
+ * fn test() = println("");
+ */
 fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
     val name = functionName(kwd.span)
     val params = parameter(name.span)
@@ -81,7 +95,11 @@ fun Parser.functionReturnType(): Expressions? {
 
         when (peekToken.type) {
             Tokens.Whitespace, Tokens.NewLine -> lexer.next()
-            Tokens.Punctuation(Punctuations.Colon) -> {}
+            Tokens.Punctuation(Punctuations.Colon) -> {
+                expect(Tokens.Punctuation(Punctuations.Colon), ExpectException("Expect `:`", peekToken.span))
+                return expressions()
+            }
+
             else -> break
         }
     }

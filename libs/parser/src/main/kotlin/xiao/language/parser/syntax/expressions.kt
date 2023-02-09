@@ -36,6 +36,10 @@ fun Parser.expressions(): Expressions {
 
 /**
  * parse call expression function
+ * ### Example
+ * ```
+ * test(10, 20, "test")
+ * ```
  */
 fun Parser.call(name: Token): Expressions.Call {
     val left =
