@@ -24,9 +24,7 @@ class LexerTest {
 
     @Test
     fun lexerIdentTest() {
-        val idents = listOf(
-            "__test__", "__test", "test", "test__", "__哈摟__", "__哈摟", "哈摟", "哈摟__"
-        ).iterator()
+        val idents = identTestFile.readText().split('\n').iterator()
         val lexer = Lexer(FileStream(identTestFile))
 
         lexerTest(lexer, Tokens.Identifier, idents)
@@ -34,9 +32,7 @@ class LexerTest {
 
     @Test
     fun lexerLiteralTest() {
-        val literals = listOf(
-            """"abc_ def 嗨 $#!"""", """"abc""""
-        ).iterator()
+        val literals = literalTestFile.readText().split('\n').iterator()
         val lexer = Lexer(FileStream(literalTestFile))
 
         lexerTest(lexer, Tokens.Literal(Literal.String), literals)
@@ -44,9 +40,7 @@ class LexerTest {
 
     @Test
     fun lexerNumberTest() {
-        val numbers = listOf(
-            "091231231231", "0x1234567890abcdef", "0b10101100", "0o1234567"
-        ).iterator()
+        val numbers = numbersTestFile.readText().split('\n').iterator()
         val lexer = Lexer(FileStream(numbersTestFile))
 
         lexerTest(lexer, Tokens.Number, numbers)
@@ -54,9 +48,7 @@ class LexerTest {
 
     @Test
     fun lexerDelimiterTest() {
-        val delimiters = listOf(
-            '{', '}', '[', ']', '(', ')'
-        ).map { Tokens.Delimiter(Delimiters.fromDelimiters(it)) }.iterator()
+        val delimiters = delimitersTestFile.readText().map { Tokens.Delimiter(Delimiters.fromDelimiters(it)) }.iterator()
         val lexer = Lexer(FileStream(delimitersTestFile))
 
         lexerTypeTest(lexer, delimiters, listOf(Tokens.NewLine, Tokens.EOF, Tokens.Whitespace))
@@ -64,20 +56,7 @@ class LexerTest {
 
     @Test
     fun lexerPunctuationTest() {
-        val punctuations = listOf(
-            "::",
-            ":",
-            "+",
-            "-",
-            "/",
-            "%",
-            "||",
-            "|",
-            "&",
-            "&&",
-            "!",
-            ","
-        ).map { Tokens.Punctuation(Punctuations.fromPunctuation(it)) }.iterator()
+        val punctuations = punctuationTestFile.readText().split('\n').map { Tokens.Punctuation(Punctuations.fromPunctuation(it)) }.iterator()
         val lexer = Lexer(FileStream(punctuationTestFile))
 
         lexerTypeTest(lexer, punctuations, listOf(Tokens.NewLine, Tokens.EOF, Tokens.Whitespace))

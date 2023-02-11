@@ -3,7 +3,7 @@ fn Test::test() {
 }
 
 fn test() {
-    ret "123"
+    return "123"
 }
 
 fn test() = "123"
