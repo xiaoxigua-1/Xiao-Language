@@ -3,10 +3,10 @@ package xiao.language.parser
 import xiao.language.lexer.Lexer
 import xiao.language.parser.syntax.expressions
 import xiao.language.parser.syntax.statements.function
+import xiao.language.parser.syntax.statements.public
 import xiao.language.parser.syntax.statements.returnStatement
 import xiao.language.utilities.Token
 import xiao.language.utilities.ast.Statement
-import xiao.language.utilities.ast.Visibility
 import xiao.language.utilities.exceptions.Exceptions
 import xiao.language.utilities.tokens.Keywords
 import xiao.language.utilities.tokens.Punctuations
@@ -58,8 +58,9 @@ internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
 
 private fun Parser.keyword(kwdType: Keywords, kwd: Token): Statement {
     return when (kwdType) {
-        Keywords.Fn -> function(Visibility.Private, kwd)
+        Keywords.Fn -> function(kwd)
         Keywords.Return -> returnStatement(kwd)
+        Keywords.Pub -> public(kwd)
         else -> throw Exceptions.EOFException("")
     }
 }

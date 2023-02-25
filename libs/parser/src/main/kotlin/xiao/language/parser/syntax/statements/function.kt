@@ -25,12 +25,12 @@ import xiao.language.utilities.tokens.Tokens
  *
  * fn test() = println("");
  */
-fun Parser.function(vis: Visibility, kwd: Token): Statement.Function {
+fun Parser.function(kwd: Token): Statement.Function {
     val name = functionName(kwd.span)
     val params = parameter(name.span)
     val returnType = functionReturnType()
     val block = functionBlock(params.right.span)
-    return Statement.Function(vis, kwd, name, params, returnType, block)
+    return Statement.Function(kwd, name, params, returnType, block)
 }
 
 /**

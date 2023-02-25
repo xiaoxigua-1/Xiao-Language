@@ -2,7 +2,6 @@ package xiao.language.parser
 
 import xiao.language.lexer.FileStream
 import xiao.language.lexer.Lexer
-import xiao.language.utilities.Span
 import xiao.language.utilities.ast.Statement
 import xiao.language.utilities.exceptions.Exceptions
 import xiao.language.utilities.report.Level
