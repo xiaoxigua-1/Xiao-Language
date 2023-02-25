@@ -18,15 +18,16 @@ class ParserTest {
     fun parserFunctionTest() {
         val lexer = Lexer(FileStream(functionsFile))
         val parser = Parser(lexer)
+        val reports = mutableListOf<Report>()
         try {
             for (function in parser) {
-                println(function)
                 assert(function is Statement.Function)
-                ReportPrint(listOf(Report("", Level.Error, function.span)), functionsFile.readText(), functionsFile.path).all()
+                reports += Report("Debug", Level.Debug, function.span)
             }
         } catch (e: Exceptions.ExpectException) {
-            println(e.span)
-            ReportPrint(listOf(Report(e, Level.Error)), functionsFile.readText(), functionsFile.path).all()
+            reports += Report(e, Level.Error)
         }
+
+        ReportPrint(reports, functionsFile.readText(), functionsFile.path).all()
     }
 }

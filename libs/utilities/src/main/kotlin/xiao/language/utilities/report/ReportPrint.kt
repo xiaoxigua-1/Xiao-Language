@@ -17,15 +17,15 @@ private fun ReportPrint.print(report: Report) {
 
             val output = if (span.end in index..(index + s.length) && isStart) {
                 isStart = false
-                "\u001b[0m${i + 1}| " + s.mapIndexed { i, c ->
-                    if (index + i == span.start || (span.start !in index..(index + s.length) && i == 0)) "\u001b[4m$c"
-                    else if (index + i == span.end) "$c\u001b[0m"
+                "\u001b[0m${i + 1}| " + s.mapIndexed { lineIndex, c ->
+                    if (index + lineIndex == span.start || (span.start !in index..(index + s.length) && lineIndex == 0)) "\u001b[4m$c"
+                    else if (index + lineIndex == span.end) "$c\u001b[0m"
                     else "$c"
                 }.joinToString("") + '\n'
 
             } else if (isStart) {
-                "\u001b[0m${i + 1}| " + s.mapIndexed { i, c ->
-                    if (index + i > span.start) "\u001b[4m$c"
+                "\u001b[0m${i + 1}| " + s.mapIndexed { lineIndex, c ->
+                    if (index + lineIndex >= span.start) "\u001b[4m$c"
                     else "$c"
                 }.joinToString("") + '\n'
             } else ""

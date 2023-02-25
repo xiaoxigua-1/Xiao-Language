@@ -18,20 +18,31 @@ fun Parser.expressions(): Expressions {
 
         return when {
             type is Tokens.Whitespace || type is Tokens.NewLine -> continue
-            type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.PathSep) -> path(token)
+            type == Tokens.Punctuation(Punctuations.PathSep) -> path(token)
             type is Tokens.Identifier && lexer.peek().type == Tokens.Delimiter(Delimiters.LeftParentheses) -> call(token)
-            type is Tokens.Literal && type is Tokens.Identifier && lexer.peek().type == Tokens.Punctuation(Punctuations.Colon) -> sub(
+            type == Tokens.Punctuation(Punctuations.Dot) -> sub(
                 token
             )
 
             type is Tokens.Literal -> Expressions.String(token)
-            type is Tokens.Identifier -> Expressions.Identifier(token, token.span)
+            type is Tokens.Identifier -> identifier(token)
             type == Tokens.Delimiter(Delimiters.LeftCurlyBraces) -> block(token)
             else -> throw Exceptions.ExpectException("Not expression ${token.type}", token.span)
         }
     }
 
     throw Exceptions.EOFException("Expect expression")
+}
+
+fun Parser.identifier(token: Token): Expressions.Identifier {
+    return when (lexer.peek().type) {
+        is Tokens.Punctuation -> {
+            val expression = expressions()
+
+            Expressions.Identifier(token, expression, Span(token.span.start, expression.span.end))
+        }
+        else -> Expressions.Identifier(token, span = token.span)
+    }
 }
 
 /**
@@ -51,11 +62,20 @@ fun Parser.call(name: Token): Expressions.Call {
         val token = lexer.peek()
 
         when (token.type) {
-            Tokens.Delimiter(Delimiters.RightParentheses) -> return Expressions.Call(
-                name,
-                listOf(),
-                Span(name.span.start, lexer.next().span.end)
-            )
+            Tokens.Delimiter(Delimiters.RightParentheses) -> {
+                val right = lexer.next()
+                val sub = when(lexer.peek().type)  {
+                    is Tokens.Punctuation -> expressions()
+                    else -> null
+                }
+
+                return Expressions.Call(
+                    name,
+                    listOf(),
+                    Span(name.span.start, sub?.span?.end ?: right.span.end),
+                    sub
+                )
+            }
 
             Tokens.Punctuation(Punctuations.Comma) -> if (comma == null) comma =
                 lexer.next() else throw Exceptions.ExpectException("Expect expression, found `,`", token.span)
@@ -74,22 +94,18 @@ fun Parser.call(name: Token): Expressions.Call {
  * parse path expression function
  */
 fun Parser.path(token: Token): Expressions.Path {
-    val main = Expressions.Identifier(token, token.span)
-    expect(Tokens.Punctuation(Punctuations.PathSep), Exceptions.ExpectException("Exception `::`", main.name.span))
     val expression = expressions()
 
-    return Expressions.Path(main, expression)
+    return Expressions.Path(expression, span = Span(token.span.start, expression.span.end))
 }
 
 /**
  * parse sub expression function
  */
 fun Parser.sub(token: Token): Expressions.Sub {
-    val main = Expressions.Identifier(token, token.span)
-    expect(Tokens.Punctuation(Punctuations.Colon), Exceptions.ExpectException("Exception `.`", main.name.span))
     val expression = expressions()
 
-    return Expressions.Sub(main, expression)
+    return Expressions.Sub(expression, span = Span(token.span.start, expression.span.end))
 }
 
 /**

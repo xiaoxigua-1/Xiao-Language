@@ -47,7 +47,7 @@ internal fun Parser.expect(type: Tokens, exception: Exceptions): Token {
             Tokens.Whitespace, Tokens.NewLine -> continue
             type -> return token
             else -> throw Exceptions.ExpectException(
-                "${exception.message!!}, found `${token.type}`",
+                "${exception.message!!}, found `${token.value}`",
                 exception.span ?: token.span
             )
         }

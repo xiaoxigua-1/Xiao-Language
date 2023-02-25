@@ -44,11 +44,16 @@ fun Parser.functionName(span: Span): Expressions {
 
     return when (lexer.peek().type) {
         Tokens.Punctuation(Punctuations.PathSep) -> {
-            expect(Tokens.Punctuation(Punctuations.PathSep), ExpectException("", token.span))
-            Expressions.Path(Expressions.Identifier(token), Expressions.Identifier(lexer.next()))
+            val pathSep = lexer.next()
+            Expressions.Identifier(
+                token,
+                Expressions.Identifier(
+                    expect(Tokens.Identifier, ExpectException("Expect identifier", pathSep.span))
+                )
+            )
         }
 
-        else -> Expressions.Identifier(token, token.span)
+        else -> Expressions.Identifier(token, span = token.span)
     }
 }
 
