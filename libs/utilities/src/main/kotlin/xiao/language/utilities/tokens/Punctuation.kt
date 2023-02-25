@@ -12,9 +12,13 @@ enum class Punctuations(val punctuation: String) {
     Or("|"),
     AndAnd("&&"),
     OrOr("||"),
-    Comma(",");
+    Comma(","),
+    Semi(";"),
+    Eq("="),
+    Dot(".");
 
     companion object {
+        val punctuations = values().map { it.punctuation }
         private val punctuationsMap = values().associateBy { it.punctuation }
 
         fun fromPunctuation(punctuation: String): Punctuations = punctuationsMap[punctuation] ?: throw UnknownError()

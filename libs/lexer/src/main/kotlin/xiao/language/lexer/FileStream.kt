@@ -5,9 +5,8 @@ import java.net.URI
 import java.net.URL
 
 class FileStream(
-    private val file: File,
+    private var content: String,
 ) : Iterator<Char> {
-    private var content: String = ""
     var index: Int = 0
         private set
     val current: Char
@@ -15,19 +14,11 @@ class FileStream(
 
     constructor(
         uri: URI
-    ) : this(File(uri))
-
-    constructor (
-        path: String,
-    ) : this(File(path))
+    ) : this(File(uri).readText())
 
     constructor (
         path: URL,
-    ) : this(File(path.toURI()))
-
-    init {
-        this.content = file.readText()
-    }
+    ) : this(File(path.toURI()).readText())
 
     override fun hasNext() = index < content.length
 

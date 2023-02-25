@@ -4,23 +4,40 @@
 package xiao.language.lexer
 
 import org.apache.commons.math3.exception.NotANumberException
-import xiao.language.utilities.*
-import xiao.language.utilities.exceptions.Exceptions.EOFException
+import xiao.language.utilities.Span
+import xiao.language.utilities.Token
+import xiao.language.utilities.asEscaped
+import xiao.language.utilities.exceptions.Exceptions
+import xiao.language.utilities.isAsciiSymbol
 import xiao.language.utilities.tokens.*
 
 data class Lexer(
     internal val fileStream: FileStream
 ) : Iterator<Token> {
     private var isEOF = false
+    private var peek: Token? = null
 
     override fun hasNext(): Boolean = !isEOF
 
     override fun next(): Token {
-        val token = nextToken()
+        return if (peek != null) {
+            val token = peek!!
+            peek = null
+            token
+        } else {
+            val token = nextToken()
 
-        return token ?: run {
-            isEOF = true
-            Token(Tokens.EOF, '\u0000', Span(fileStream.index))
+            token ?: run {
+                isEOF = true
+                Token(Tokens.EOF, '\u0000', Span(fileStream.index))
+            }
+        }
+    }
+
+    fun peek(): Token {
+        return peek ?: run {
+            peek = nextToken()
+            peek ?: Token(Tokens.EOF, '\u0000', Span(fileStream.index))
         }
     }
 }
@@ -64,10 +81,9 @@ private fun Lexer.punctuation(start: Int, startChar: Char): Token {
 
     do {
         val c = fileStream.peek()
-        if (c?.isAsciiSymbol() == true) value += fileStream.next()
+        if (c?.isAsciiSymbol() == true && "$value$c" in Punctuations.punctuations) value += fileStream.next()
         else break
     } while (fileStream.hasNext())
-
     return Token(Tokens.Punctuation(Punctuations.fromPunctuation(value)), value, Span(start, fileStream.index))
 }
 
@@ -88,7 +104,7 @@ private fun Lexer.literal(start: Int, startChar: Char): Token {
         }
     }
 
-    throw EOFException("Unterminated string", Span(start))
+    throw Exceptions.UnterminatedException("Unterminated string", Span(start))
 }
 
 private fun Lexer.rawLiteral(start: Int): Token {
@@ -101,7 +117,7 @@ private fun Lexer.rawLiteral(start: Int): Token {
         }
     }
 
-    throw EOFException("Unterminated raw string", Span(start))
+    throw Exceptions.UnterminatedException("Unterminated raw string", Span(start))
 }
 
 private fun Lexer.number(start: Int, startChar: Char): Token {
@@ -139,7 +155,7 @@ private fun Lexer.otherNumberFormat(start: Int, startChar: Char, range: List<Cha
         when {
             c in range -> value += fileStream.next()
             c?.isWhitespace() ?: true -> break
-            else -> throw EOFException("Number format error", Span(start, fileStream.index))
+            else -> throw Exceptions.NumberFormatException("Number format error", Span(start, fileStream.index))
         }
     } while (fileStream.hasNext())
 
